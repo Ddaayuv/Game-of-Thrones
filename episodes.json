@@ -1,0 +1,187 @@
+{
+  "seasons": [
+    {
+      "seasonNumber": 1,
+      "title": "الموسم الأول",
+      "episodes": [
+        {
+          "episodeNumber": 1,
+          "title": "الحلقة 1",
+          "description": "الحلقة الأولى من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/ua2k5aorauhb_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 2,
+          "title": "الحلقة 2",
+          "description": "الحلقة الثانية من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/yvl5qrzjqf55_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 3,
+          "title": "الحلقة 3",
+          "description": "الحلقة الثالثة من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/9q9qkvvtjrrr_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 4,
+          "title": "الحلقة 4",
+          "description": "الحلقة الرابعة من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/qh1x1fz0kqqk_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 5,
+          "title": "الحلقة 5",
+          "description": "الحلقة الخامسة من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/3knpbz7h6sxo_l/index-v1-a1.m3u8"
+        },
+        {
+          "episodeNumber": 6,
+          "title": "الحلقة 6",
+          "description": "الحلقة السادسة من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/fu8fo8x2q1xe_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 7,
+          "title": "الحلقة 7",
+          "description": "الحلقة السابعة من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/p1hwmbq4pcft_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 9,
+          "title": "الحلقة 9",
+          "description": "الحلقة التاسعة من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/jf6gh8ng9acf_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 10,
+          "title": "الحلقة 10",
+          "description": "الحلقة العاشرة من الموسم الأول",
+          "duration": "60 دقيقة",
+          "airDate": "2011",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/e8env7cwf614_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        }
+      ]
+    },
+    {
+      "seasonNumber": 2,
+      "title": "الموسم الثاني",
+      "episodes": [
+        {
+          "episodeNumber": 1,
+          "title": "الحلقة 1",
+          "description": "الحلقة الأولى من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/tsu5k8o314yx_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 2,
+          "title": "الحلقة 2",
+          "description": "الحلقة الثانية من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/9fad3ycaxba2_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 3,
+          "title": "الحلقة 3",
+          "description": "الحلقة الثالثة من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/52zxhbqvzlgv_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 4,
+          "title": "الحلقة 4",
+          "description": "الحلقة الرابعة من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/qizabbogibre_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 5,
+          "title": "الحلقة 5",
+          "description": "الحلقة الخامسة من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/hkvkep19ntpi_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 6,
+          "title": "الحلقة 6",
+          "description": "الحلقة السادسة من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/okvuhxgppqld_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 7,
+          "title": "الحلقة 7",
+          "description": "الحلقة السابعة من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/9urx44svrby3_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 8,
+          "title": "الحلقة 8",
+          "description": "الحلقة الثامنة من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/zy74fszouww3_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 9,
+          "title": "الحلقة 9",
+          "description": "الحلقة التاسعة من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/ccefdb0xi66t_%2Cl%2Cn%2Ch%2Cx%2C.urlset/master.m3u8"
+        },
+        {
+          "episodeNumber": 10,
+          "title": "الحلقة 10",
+          "description": "الحلقة العاشرة من الموسم الثاني",
+          "duration": "60 دقيقة",
+          "airDate": "2012",
+          "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+          "streamUrl": "https://starcima.com/api/proxy/hls2/01/00042/1fs5f75o6m9y_l/index-v1-a1.m3u8"
+        }
+      ]
+    }
+  ]
+}
