@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مولّد بطاقات التهنئة بـ QR</title>
+<meta name="description" content="أنشئ صفحات تهنئة مخصصة وشارك رمز QR فوري مع أحبابك.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* لون الموقع الأساسي (Accent) — قابل للتغيير من زر تبديل الألوان */
+    --accent-h:350;
+    --accent-s:65%;
+    --accent-l:27%;
+
+    --violet-600:hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+    --purple-600:hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 4%));
+    --purple-700:hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 9%));
+    --purple-500:hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 14%));
+    --purple-50:hsl(var(--accent-h) calc(var(--accent-s) - 35%) 97%);
+    --purple-100:hsl(var(--accent-h) calc(var(--accent-s) - 20%) 93%);
+    --purple-200:hsl(var(--accent-h) calc(var(--accent-s) - 15%) 86%);
+
+    --accent-glow-1:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .12);
+    --accent-glow-2:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .10);
+    --accent-glow-3:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .08);
+    --accent-tint-bg:hsl(var(--accent-h) calc(var(--accent-s) - 35%) 97% / .8);
+    --accent-shadow-35:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .35);
+    --accent-shadow-45:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .45);
+    --accent-ring:hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 14%) / .35);
+    --accent-ring-strong:hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 14%) / .5);
+
+    --slate-50:#f8fafc;
+    --slate-100:#f1f5f9;
+    --slate-200:#e2e8f0;
+    --slate-300:#cbd5e1;
+    --slate-500:#64748b;
+    --slate-600:#475569;
+    --slate-700:#334155;
+    --slate-900:#0f172a;
+    --white:#ffffff;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--slate-50);
+    color:var(--slate-900);
+    font-family:"Noto Sans Arabic","Noto Sans Arabic Fallback",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    position:relative;
+    min-height:100vh;
+  }
+  h1,h2,h3,.font-display{
+    font-family:"Cairo","Cairo Fallback",sans-serif;
+  }
+
+  /* background layers, mirrors the original's fixed grid + radial glows */
+  .bg-grid{
+    pointer-events:none;
+    position:fixed;
+    inset:0;
+    z-index:-10;
+    background-image:
+      linear-gradient(to right, rgba(15,23,42,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15,23,42,0.05) 1px, transparent 1px);
+    background-size:36px 36px;
+    opacity:.4;
+  }
+  .bg-glow{
+    pointer-events:none;
+    position:fixed;
+    inset:0;
+    z-index:-10;
+    background:
+      radial-gradient(circle at 15% 20%, var(--accent-glow-1), transparent 35%),
+      radial-gradient(circle at 85% 5%, var(--accent-glow-2), transparent 30%),
+      radial-gradient(circle at 50% 90%, var(--accent-glow-3), transparent 35%);
+  }
+
+  .section-shell{
+    max-width:1120px;
+    margin:0 auto;
+    padding:0 1.25rem;
+  }
+
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit; cursor:pointer;}
+
+  /* ---------- shared bits ---------- */
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    border-radius:999px;
+    border:1px solid var(--purple-200);
+    background:var(--accent-tint-bg);
+    padding:.5rem 1rem;
+    font-size:.875rem;
+    font-weight:600;
+    color:var(--purple-700);
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.5rem;
+    border-radius:1rem;
+    padding:1rem 2rem;
+    font-weight:700;
+    font-size:1rem;
+    border:none;
+    transition:transform .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn-primary{
+    color:#fff;
+    background-image:linear-gradient(to left, var(--violet-600), var(--purple-600));
+    box-shadow:0 10px 25px -5px var(--accent-shadow-35);
+  }
+  .btn-primary:hover{ transform:scale(1.01); box-shadow:0 15px 30px -5px var(--accent-shadow-45); }
+  .btn-secondary{
+    background:#fff;
+    color:var(--slate-700);
+    border:2px solid var(--slate-200);
+  }
+  .btn-secondary:hover{ border-color:var(--slate-300); background:var(--slate-50); }
+
+  .card{
+    border-radius:1.5rem;
+    border:1px solid rgba(226,232,240,.8);
+    background:rgba(255,255,255,.7);
+    backdrop-filter:blur(6px);
+    padding:1.5rem;
+    transition:box-shadow .25s ease;
+  }
+  .card:hover{ box-shadow:0 20px 35px -15px rgba(15,23,42,.15); }
+
+  .icon-box{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:3rem;
+    height:3rem;
+    border-radius:1rem;
+    background:var(--purple-50);
+    color:var(--purple-600);
+    margin-bottom:.75rem;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{ padding-top:3rem; padding-bottom:1rem; text-align:center; }
+  .hero-inner{ max-width:56rem; margin:0 auto; }
+  .hero h1{
+    font-size:2.4rem;
+    font-weight:800;
+    line-height:1.25;
+    color:var(--slate-900);
+    margin:1.25rem 0 0;
+  }
+  .hero h1 .grad{
+    background-image:linear-gradient(to left, var(--violet-600), var(--purple-600));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p{
+    max-width:42rem;
+    margin:1.5rem auto 0;
+    color:var(--slate-600);
+    font-size:1.05rem;
+    line-height:1.9;
+  }
+  .hero-actions{
+    margin-top:2rem;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap:.75rem;
+  }
+  .counter{
+    margin-top:2.5rem;
+    color:var(--slate-500);
+    font-size:.9rem;
+  }
+  .counter b{ color:var(--purple-600); font-weight:800; font-size:1.05rem; }
+
+  /* ---------- features grid ---------- */
+  .features{ margin-top:5rem; }
+  .grid-4{ display:grid; gap:1rem; grid-template-columns:repeat(1,1fr); }
+  @media(min-width:640px){ .grid-4{ grid-template-columns:repeat(2,1fr); } }
+  @media(min-width:1024px){ .grid-4{ grid-template-columns:repeat(4,1fr); } }
+  .grid-4 h3{ font-size:1.05rem; font-weight:700; margin:0; }
+  .grid-4 p{ margin:.25rem 0 0; font-size:.875rem; color:var(--slate-600); }
+
+  /* ---------- how it works ---------- */
+  .how{ margin-top:5rem; }
+  .how-head{ text-align:center; margin-bottom:2.5rem; }
+  .how-head h2{ font-size:1.9rem; font-weight:800; margin:0; }
+  .how-head p{ margin-top:.75rem; color:var(--slate-600); }
+  .grid-3{ display:grid; gap:1.5rem; grid-template-columns:1fr; }
+  @media(min-width:768px){ .grid-3{ grid-template-columns:repeat(3,1fr); } }
+  .step{ padding:1.75rem; }
+  .step-num{
+    display:flex; align-items:center; justify-content:center;
+    width:2.5rem; height:2.5rem; border-radius:999px;
+    background-image:linear-gradient(to bottom right, var(--violet-600), var(--purple-600));
+    color:#fff; font-weight:700; margin-bottom:1rem;
+  }
+  .step h3{ font-size:1.05rem; font-weight:700; margin:0; }
+  .step p{ margin-top:.5rem; font-size:.875rem; color:var(--slate-600); }
+
+  /* ---------- greeting types ---------- */
+  .types-wrap{ margin-top:5rem; }
+  .types-card{
+    border-radius:1.5rem; border:1px solid rgba(226,232,240,.8);
+    background:rgba(255,255,255,.7); backdrop-filter:blur(6px);
+    padding:2.5rem 2rem; text-align:center;
+  }
+  .types-card h2{ font-size:1.9rem; font-weight:800; margin:0; }
+  .type-list{
+    margin-top:2rem; display:flex; flex-wrap:wrap; justify-content:center; gap:.75rem;
+  }
+  .type-chip{
+    display:flex; align-items:center; gap:.5rem;
+    border-radius:1rem; border:1px solid var(--purple-100);
+    background:var(--accent-tint-bg);
+    padding:.75rem 1.25rem;
+    font-size:.9rem; font-weight:600; color:var(--purple-700);
+  }
+  .type-chip svg{ color:var(--purple-600); }
+
+  main{ padding-bottom:6rem; }
+
+  /* ---------- create page ---------- */
+  .create-header{ text-align:center; margin-bottom:2.5rem; padding-top:2.5rem; }
+  .back-link{
+    display:inline-flex; align-items:center; gap:.5rem;
+    border-radius:999px; border:1px solid rgba(226,232,240,.8);
+    background:rgba(255,255,255,.6); backdrop-filter:blur(6px);
+    padding:.5rem 1rem; font-size:.9rem; font-weight:500; color:var(--slate-600);
+    transition:background .2s, color .2s;
+  }
+  .back-link:hover{ background:#fff; color:var(--slate-900); }
+  .create-header h1{ font-size:2.1rem; font-weight:800; margin:1rem 0 0; }
+  .create-header p{ max-width:34rem; margin:1rem auto 0; color:var(--slate-600); }
+
+  .create-form{ max-width:48rem; margin:0 auto; display:grid; gap:2rem; }
+  .form-section{
+    border-radius:1.5rem; border:1px solid rgba(226,232,240,.8);
+    background:rgba(255,255,255,.7); backdrop-filter:blur(6px);
+    padding:1.75rem;
+  }
+  .form-section-header{ display:flex; align-items:flex-start; gap:.75rem; margin-bottom:1.25rem; }
+  .form-section-icon{ color:var(--purple-600); margin-top:.15rem; }
+  .form-section-title{ font-size:1.05rem; font-weight:700; margin:0; color:var(--slate-900); }
+  .form-section-desc{ font-size:.85rem; color:var(--slate-600); margin:.15rem 0 0; }
+
+  .occasion-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:.75rem; }
+  @media(min-width:640px){ .occasion-grid{ grid-template-columns:repeat(3,1fr); } }
+  @media(min-width:1024px){ .occasion-grid{ grid-template-columns:repeat(5,1fr); } }
+  .occasion-option{
+    cursor:pointer; border-radius:1rem; border:2px solid var(--slate-200);
+    background:rgba(255,255,255,.6); padding:1rem; text-align:center;
+    transition:all .2s ease;
+  }
+  .occasion-option:hover{ border-color:var(--slate-300); background:rgba(255,255,255,.85); }
+  .occasion-option input{ position:absolute; opacity:0; pointer-events:none; }
+  .occasion-option svg{ color:var(--purple-600); margin-bottom:.5rem; }
+  .occasion-option span{ display:block; font-size:.78rem; font-weight:600; color:var(--slate-600); }
+  .occasion-option.active{
+    border-color:var(--purple-500); background:var(--accent-tint-bg);
+    box-shadow:0 8px 20px -8px var(--accent-ring-strong);
+  }
+  .occasion-option.active span{ color:var(--purple-700); }
+
+  .field-grid{ display:grid; gap:1.25rem; }
+  @media(min-width:640px){ .field-grid{ grid-template-columns:1fr 1fr; } }
+  .field label{ display:block; font-size:.875rem; font-weight:600; color:var(--slate-700); margin-bottom:.5rem; }
+  .form-input{
+    width:100%;
+    border-radius:.85rem;
+    border:1px solid var(--slate-200);
+    background:rgba(255,255,255,.8);
+    padding:.75rem 1rem;
+    font-family:inherit;
+    font-size:.95rem;
+    color:var(--slate-900);
+    outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .form-input:focus{ border-color:var(--purple-500); box-shadow:0 0 0 3px var(--accent-ring); }
+  textarea.form-input{ min-height:10rem; resize:vertical; }
+
+  .color-row{ display:flex; align-items:center; gap:1rem; }
+  input[type="color"]{
+    height:3.5rem; width:5rem; border-radius:.85rem; border:2px solid var(--slate-200);
+    background:transparent; padding:.25rem; cursor:pointer;
+  }
+  .color-value{
+    flex:1; display:flex; align-items:center; gap:.75rem;
+    border-radius:.85rem; border:1px solid rgba(226,232,240,.8);
+    background:rgba(255,255,255,.7); padding:.75rem 1rem;
+  }
+  .color-value input{ flex:1; border:none; background:transparent; outline:none; font-family:monospace; font-size:.9rem; color:var(--slate-700); }
+  .color-swatch{ height:2rem; width:2rem; border-radius:999px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.05); }
+  .preset-row{ margin-top:.75rem; display:flex; flex-wrap:wrap; gap:.5rem; }
+  .preset{
+    height:2rem; width:2rem; border-radius:999px; border:none;
+    transition:transform .15s ease;
+  }
+  .preset:hover{ transform:scale(1.12); }
+  .preset.active{ box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--slate-500); }
+
+  .dropzone{
+    display:flex; flex-direction:column; align-items:center; gap:.75rem;
+    border-radius:1.5rem; border:2px dashed var(--slate-300);
+    background:rgba(255,255,255,.5); padding:2.5rem 1.5rem; text-align:center;
+    cursor:pointer; transition:border-color .2s, background .2s;
+  }
+  .dropzone:hover{ border-color:var(--purple-500); background:hsl(var(--accent-h) calc(var(--accent-s) - 35%) 97% / .3); }
+  .dropzone .dz-icon{
+    display:flex; align-items:center; justify-content:center;
+    width:3.5rem; height:3.5rem; border-radius:1rem;
+    background:var(--slate-100); color:var(--slate-600);
+  }
+  .dropzone strong{ color:var(--slate-700); font-weight:600; }
+  .dropzone small{ color:var(--slate-500); font-size:.78rem; }
+  .thumbs{ margin-top:1rem; display:flex; flex-wrap:wrap; gap:.6rem; }
+  .thumbs img{ width:64px; height:64px; object-fit:cover; border-radius:.75rem; border:1px solid var(--slate-200); }
+
+  .album-style{ margin-top:1rem; display:grid; gap:.75rem; }
+  @media(min-width:640px){ .album-style{ grid-template-columns:1fr 1fr; } }
+  .album-option{
+    cursor:pointer; border-radius:1rem; border:2px solid var(--slate-200);
+    background:rgba(255,255,255,.6); padding:1rem; transition:all .2s ease;
+  }
+  .album-option.active{ border-color:var(--purple-500); background:var(--accent-tint-bg); box-shadow:0 8px 20px -8px var(--accent-ring-strong); }
+  .album-option .row{ display:flex; align-items:center; gap:.75rem; }
+  .album-option svg{ color:var(--purple-600); }
+  .album-option p.t{ margin:0; font-weight:600; color:var(--slate-800); }
+  .album-option.active p.t{ color:var(--purple-700); }
+  .album-option p.d{ margin:.1rem 0 0; font-size:.78rem; color:var(--slate-500); }
+
+  .music-tabs{ display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; border-radius:1rem; background:rgba(241,245,249,.8); padding:.4rem; }
+  .music-tab{
+    display:flex; align-items:center; justify-content:center; gap:.5rem;
+    border-radius:.75rem; border:none; background:transparent; padding:.6rem .5rem;
+    font-size:.85rem; font-weight:600; color:var(--slate-500); transition:all .2s ease;
+  }
+  .music-tab.active{ background:#fff; color:var(--purple-700); box-shadow:0 2px 6px rgba(15,23,42,.08); }
+
+  .submit-bar{
+    display:flex; flex-direction:column; gap:1rem; align-items:center; justify-content:space-between;
+    border-radius:1.5rem; border:1px solid rgba(226,232,240,.6);
+    background:linear-gradient(to left, rgba(248,250,252,.8), rgba(255,255,255,.8));
+    padding:1.5rem; text-align:center;
+  }
+  @media(min-width:640px){ .submit-bar{ flex-direction:row; text-align:right; } }
+  .submit-bar .info p:first-child{ font-weight:600; color:var(--slate-800); margin:0; }
+  .submit-bar .info p:last-child{ font-size:.85rem; color:var(--slate-500); margin:.25rem 0 0; }
+  .submit-btn{
+    width:100%;
+    background-image:linear-gradient(to left, var(--violet-600), var(--purple-600), var(--purple-700));
+    color:#fff; border-radius:1rem; padding:1rem 2rem; font-weight:700; border:none;
+    box-shadow:0 10px 25px -5px var(--accent-shadow-35); transition:transform .2s, box-shadow .2s;
+  }
+  @media(min-width:640px){ .submit-btn{ width:auto; } }
+  .submit-btn:hover{ transform:scale(1.01); }
+
+  /* result / QR preview modal-ish panel */
+  .result-panel{
+    max-width:48rem; margin:2rem auto 0; border-radius:1.5rem;
+    border:1px solid rgba(226,232,240,.8); background:rgba(255,255,255,.85);
+    padding:2rem; text-align:center; display:none;
+  }
+  .result-panel.show{ display:block; }
+  .result-panel h3{ margin:0 0 .5rem; font-size:1.3rem; font-weight:800; }
+  .qr-box{
+    width:180px; height:180px; margin:1.25rem auto; border-radius:1rem;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff; border:1px solid var(--slate-200); padding:10px;
+  }
+  .result-link{
+    display:inline-block; margin-top:.75rem; padding:.6rem 1rem; border-radius:.75rem;
+    background:var(--slate-100); font-family:monospace; font-size:.85rem; color:var(--slate-700);
+    word-break:break-all;
+  }
+
+  /* view switching */
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  footer{
+    text-align:center; padding:2.5rem 1.25rem 1.5rem; color:var(--slate-500); font-size:.85rem;
+  }
+  footer span{ color:var(--purple-600); font-weight:700; }
+  footer .dev-credit{
+    margin-top:.6rem;
+    display:flex; align-items:center; justify-content:center; gap:.5rem;
+    flex-wrap:wrap;
+    color:var(--slate-600);
+  }
+  footer .dev-credit strong{ color:var(--slate-900); font-weight:800; }
+  footer .dev-credit a{
+    display:inline-flex; align-items:center; gap:.35rem;
+    color:var(--purple-700); font-weight:700;
+    transition:color .2s ease;
+  }
+  footer .dev-credit a:hover{ color:var(--purple-600); text-decoration:underline; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+
+  /* ---------- floating theme-color switcher ---------- */
+  .theme-switcher{
+    position:fixed;
+    bottom:1.5rem;
+    left:1.5rem;
+    z-index:50;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:.75rem;
+  }
+  .theme-fab{
+    width:3.25rem; height:3.25rem; border-radius:999px; border:none;
+    background-image:linear-gradient(135deg, var(--violet-600), var(--purple-700));
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 12px 24px -8px var(--accent-shadow-45);
+    transition:transform .2s ease;
+  }
+  .theme-fab:hover{ transform:scale(1.06) rotate(15deg); }
+  .theme-panel{
+    display:none;
+    width:15.5rem;
+    border-radius:1.25rem;
+    border:1px solid rgba(226,232,240,.9);
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(10px);
+    box-shadow:0 20px 40px -12px rgba(15,23,42,.25);
+    padding:1rem;
+  }
+  .theme-panel.open{ display:block; }
+  .theme-panel h4{
+    margin:0 0 .75rem; font-size:.85rem; font-weight:700; color:var(--slate-700);
+  }
+  .theme-swatches{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:.55rem; margin-bottom:.9rem;
+  }
+  .theme-swatch{
+    width:100%; aspect-ratio:1; border-radius:.7rem; border:none;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
+    transition:transform .15s ease;
+    position:relative;
+  }
+  .theme-swatch:hover{ transform:scale(1.08); }
+  .theme-swatch.active::after{
+    content:"";
+    position:absolute; inset:-4px;
+    border-radius:.95rem;
+    border:2px solid var(--slate-700);
+  }
+  .theme-custom{
+    display:flex; align-items:center; gap:.6rem;
+  }
+  .theme-custom input[type="color"]{
+    height:2.25rem; width:2.75rem; border-radius:.6rem; border:2px solid var(--slate-200);
+    padding:.15rem; background:transparent; cursor:pointer;
+  }
+  .theme-custom span{ font-size:.78rem; color:var(--slate-500); }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- ============= HOME VIEW ============= -->
+<main id="view-home" class="view active">
+  <section class="section-shell hero">
+    <div class="hero-inner">
+      <span class="pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+        مولّد تهاني سينمائي بـ QR
+      </span>
+
+      <h1>حوّل أمنياتك إلى<span class="grad"> تجربة تهنئة مذهلة </span>وشاركها بمسح واحد</h1>
+
+      <p>أنشئ تهاني مخصصة في أقل من دقيقة. أضف الأسماء والنصوص والصور والموسيقى، ثم ولّد رمز QR جاهز للبطاقات والهدايا والمشاركة.</p>
+
+      <div class="hero-actions">
+        <a href="#/create" class="btn btn-primary" onclick="go('create');return false;">
+          أنشئ تهنئة الآن
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+        </a>
+        <a href="#how" class="btn btn-secondary">كيف يعمل؟</a>
+      </div>
+
+      <div class="counter"><b id="greetCounter">0</b> تهنئة تم إنشاؤها حتى الآن</div>
+    </div>
+  </section>
+
+  <section class="section-shell features">
+    <div class="grid-4">
+      <div class="card">
+        <div class="icon-box"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <h3>بدون حساب</h3>
+        <p>أنشئ وشارك فوراً بنقرة واحدة</p>
+      </div>
+      <div class="card">
+        <div class="icon-box"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></div>
+        <h3>رابط فريد</h3>
+        <p>كل تهنئة تحصل على رابط عام خاص</p>
+      </div>
+      <div class="card">
+        <div class="icon-box"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 14h2v2h-2z"/><path d="M20 14h2v2h-2z"/><path d="M14 20h2v2h-2z"/><path d="M20 20h2v2h-2z"/><path d="M18 14v4h-2"/><path d="M14 18h4"/></svg></div>
+        <h3>رمز QR</h3>
+        <p>حمّل كـ PNG واطبعه في أي مكان</p>
+      </div>
+      <div class="card">
+        <div class="icon-box"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20"/><path d="M17 2v20"/><path d="M2 12h20"/><path d="M2 7h5"/><path d="M2 17h5"/><path d="M17 7h5"/><path d="M17 17h5"/></svg></div>
+        <h3>تجربة سينمائية</h3>
+        <p>عرض مذهل بتأثيرات متحركة</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="section-shell how">
+    <div class="how-head">
+      <h2>كيف يعمل؟</h2>
+      <p>ثلاث خطوات بسيطة لإنشاء تهنئة لا تُنسى</p>
+    </div>
+    <div class="grid-3">
+      <div class="card step">
+        <div class="step-num">1</div>
+        <h3>اختر المناسبة</h3>
+        <p>عيد ميلاد، عيد، حب، أو تهنئة عامة</p>
+      </div>
+      <div class="card step">
+        <div class="step-num">2</div>
+        <h3>خصّص تهنئتك</h3>
+        <p>أضف الأسماء والرسالة والصور والموسيقى</p>
+      </div>
+      <div class="card step">
+        <div class="step-num">3</div>
+        <h3>شارك بمسح واحد</h3>
+        <p>احصل على رمز QR ورابط فوري للمشاركة</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-shell types-wrap">
+    <div class="types-card">
+      <h2>أنواع التهاني المدعومة</h2>
+      <div class="type-list">
+        <span class="type-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 00-2-2H6a2 2 0 00-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg> عيد ميلاد</span>
+        <span class="type-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 009 9 9 9 0 11-9-9z"/></svg> عيد الفطر</span>
+        <span class="type-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> عيد الأضحى</span>
+        <span class="type-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> عيد الحب</span>
+        <span class="type-chip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg> تهنئة عامة</span>
+      </div>
+      <div style="margin-top:2rem;">
+        <a href="#/create" class="btn btn-primary" onclick="go('create');return false;">ابدأ الآن</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============= CREATE VIEW ============= -->
+<main id="view-create" class="view">
+  <section class="section-shell create-header">
+    <a href="#/" class="back-link" onclick="go('home');return false;">→ العودة للرئيسية</a>
+    <h1>صمّم تجربة تهنئتك
+      <svg width="28" height="28" style="display:inline;vertical-align:middle;color:var(--purple-500)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+    </h1>
+    <p>صفحة تهنئة سينمائية مع أنيميشن وموسيقى وصور — يستلمها المستقبل برابط أو رمز QR</p>
+  </section>
+
+  <section class="section-shell">
+    <form id="greetForm" class="create-form" onsubmit="return submitGreeting(event)">
+
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.8 11.3L2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="M22 2l-2.24.75a2.9 2.9 0 00-1.96 3.12v0c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="M22 13l-1.34-.45a2.9 2.9 0 00-3.12 1.96v0c-.3.87-1.25 1.3-2.11 1l-.43-.15"/><path d="M8 22h.01"/><path d="M11 19l1.34.45a2.9 2.9 0 003.12-1.96v0c.3-.87 1.25-1.3 2.11-1l.43.15"/></svg></span>
+          <div>
+            <h3 class="form-section-title">نوع المناسبة</h3>
+            <p class="form-section-desc">اختر نوع التهنئة المناسبة</p>
+          </div>
+        </div>
+        <div class="occasion-grid" id="occasionGrid">
+          <label class="occasion-option active" data-value="Birthday">
+            <input type="radio" name="type" value="Birthday" checked>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 00-2-2H6a2 2 0 00-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg>
+            <span>عيد ميلاد</span>
+          </label>
+          <label class="occasion-option" data-value="Eid Al-Fitr">
+            <input type="radio" name="type" value="Eid Al-Fitr">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 009 9 9 9 0 11-9-9z"/></svg>
+            <span>عيد الفطر</span>
+          </label>
+          <label class="occasion-option" data-value="Eid Al-Adha">
+            <input type="radio" name="type" value="Eid Al-Adha">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>عيد الأضحى</span>
+          </label>
+          <label class="occasion-option" data-value="Valentine's Day">
+            <input type="radio" name="type" value="Valentine's Day">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            <span>عيد الحب</span>
+          </label>
+          <label class="occasion-option" data-value="General Greeting">
+            <input type="radio" name="type" value="General Greeting">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+            <span>تهنئة عامة</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          <div>
+            <h3 class="form-section-title">المعلومات الأساسية</h3>
+            <p class="form-section-desc">أسماء المرسل والمستقبل</p>
+          </div>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label>اسم المستلم</label>
+            <input class="form-input" placeholder="مثال: محمد" minlength="2" maxlength="80" required name="receiverName">
+          </div>
+          <div class="field">
+            <label>اسم المرسل</label>
+            <input class="form-input" placeholder="مثال: نور" minlength="2" maxlength="80" required name="senderName">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></span>
+          <div>
+            <h3 class="form-section-title">رسالتك الخاصة</h3>
+            <p class="form-section-desc">اكتب رسالة من القلب</p>
+          </div>
+        </div>
+        <textarea class="form-input" name="message" placeholder="اكتب رسالتك المميزة هنا... ستظهر بتأثير كتابة متحرك عند عرض التهنئة" minlength="3" maxlength="2000" required></textarea>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span>
+          <div>
+            <h3 class="form-section-title">لون التهنئة</h3>
+            <p class="form-section-desc">اختر اللون الرئيسي لتجربة التهنئة</p>
+          </div>
+        </div>
+        <div class="color-row">
+          <input type="color" id="themeColor" value="#8b5cf6" name="themeColor" oninput="syncColor(this.value)">
+          <div class="color-value">
+            <input id="colorText" value="#8b5cf6" oninput="syncColor(this.value)">
+            <div class="color-swatch" id="colorSwatch" style="background:#8b5cf6"></div>
+          </div>
+        </div>
+        <div class="preset-row" id="presetRow">
+          <button type="button" class="preset active" style="background:#8b5cf6" onclick="pickPreset('#8b5cf6', this)"></button>
+          <button type="button" class="preset" style="background:#0ea5e9" onclick="pickPreset('#0ea5e9', this)"></button>
+          <button type="button" class="preset" style="background:#f43f5e" onclick="pickPreset('#f43f5e', this)"></button>
+          <button type="button" class="preset" style="background:#16a34a" onclick="pickPreset('#16a34a', this)"></button>
+          <button type="button" class="preset" style="background:#f97316" onclick="pickPreset('#f97316', this)"></button>
+          <button type="button" class="preset" style="background:#ec4899" onclick="pickPreset('#ec4899', this)"></button>
+          <button type="button" class="preset" style="background:#eab308" onclick="pickPreset('#eab308', this)"></button>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+          <div>
+            <h3 class="form-section-title">ألبوم الصور</h3>
+            <p class="form-section-desc">ارفع صور للذكريات (اختياري - حتى 8 صور)</p>
+          </div>
+        </div>
+        <label class="dropzone">
+          <div class="dz-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+          <div>
+            <strong>اسحب الصور هنا أو اضغط للاختيار</strong>
+            <br><small>JPG, PNG, WebP — الحد الأقصى 5MB لكل صورة</small>
+          </div>
+          <input style="display:none" accept="image/*" multiple type="file" name="images" onchange="previewImages(this)">
+        </label>
+        <div class="thumbs" id="thumbs"></div>
+
+        <div class="album-style">
+          <label class="album-option active" data-value="slider">
+            <input type="radio" name="albumStyle" value="slider" checked style="display:none">
+            <div class="row">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M20.4 14.5L16 10 4 20"/></svg>
+              <div><p class="t">عرض شرائح</p><p class="d">تنقل سلس بتأثير Fade</p></div>
+            </div>
+          </label>
+          <label class="album-option" data-value="book">
+            <input type="radio" name="albumStyle" value="book" style="display:none">
+            <div class="row">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              <div><p class="t">كتاب متقلب</p><p class="d">تأثير تقليب صفحات واقعي</p></div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+          <div>
+            <h3 class="form-section-title">موسيقى خلفية</h3>
+            <p class="form-section-desc">أضف لمسة موسيقية لتهنئتك (اختياري)</p>
+          </div>
+        </div>
+        <div class="music-tabs" id="musicTabs">
+          <button type="button" class="music-tab active" onclick="pickMusic(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <span>بدون موسيقى</span>
+          </button>
+          <button type="button" class="music-tab" onclick="pickMusic(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>رفع ملف</span>
+          </button>
+          <button type="button" class="music-tab" onclick="pickMusic(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            <span>رابط خارجي</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="submit-bar">
+        <div class="info">
+          <p>جاهز للإبداع؟</p>
+          <p>سيتم إنشاء رابط تهنئة عام ورمز QR فوراً</p>
+        </div>
+        <button type="submit" class="submit-btn">
+          إنشاء التهنئة
+          <svg width="18" height="18" style="display:inline;vertical-align:middle;margin-inline-start:.4rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+        </button>
+      </div>
+    </form>
+
+    <div class="result-panel" id="resultPanel">
+      <h3>🎉 تم إنشاء تهنئتك بنجاح!</h3>
+      <p style="color:var(--slate-600)">شارك الرابط أو رمز QR مع من تحب</p>
+      <div class="qr-box" id="qrBox"></div>
+      <div class="result-link" id="resultLink"></div>
+    </div>
+  </section>
+</main>
+
+<div class="theme-switcher">
+  <div class="theme-panel" id="themePanel">
+    <h4>لون الموقع</h4>
+    <div class="theme-swatches" id="themeSwatches">
+      <button type="button" class="theme-swatch active" style="background:#7a1f2b" data-color="#7a1f2b" title="ماروني" onclick="applyAccent('#7a1f2b', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#7c3aed" data-color="#7c3aed" title="بنفسجي" onclick="applyAccent('#7c3aed', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#0ea5e9" data-color="#0ea5e9" title="أزرق" onclick="applyAccent('#0ea5e9', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#16a34a" data-color="#16a34a" title="أخضر" onclick="applyAccent('#16a34a', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#f97316" data-color="#f97316" title="برتقالي" onclick="applyAccent('#f97316', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#ec4899" data-color="#ec4899" title="وردي" onclick="applyAccent('#ec4899', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#eab308" data-color="#eab308" title="ذهبي" onclick="applyAccent('#eab308', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#0f172a" data-color="#0f172a" title="أسود كحلي" onclick="applyAccent('#0f172a', this)"></button>
+    </div>
+    <div class="theme-custom">
+      <input type="color" id="customAccent" value="#7a1f2b" oninput="applyAccent(this.value)">
+      <span>لون مخصص</span>
+    </div>
+  </div>
+  <button type="button" class="theme-fab" onclick="toggleThemePanel()" aria-label="تغيير لون الموقع">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+    </svg>
+  </button>
+</div>
+
+<footer>
+  <div>صُنع بـ <span>♥</span> — نسخة مطابقة توضيحية لواجهة مولّد بطاقات التهنئة بـ QR</div>
+  <div class="dev-credit">
+    تطوير: <strong>حسين طالب</strong>
+    ·
+    <a href="https://t.me/HardHso" target="_blank" rel="noopener noreferrer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M21.9 4.6c.3-1.2-.9-2.1-2-1.7L2.6 10.1c-1.2.4-1.2 2.1 0 2.5l4.7 1.5 1.8 5.6c.3.9 1.4 1.2 2.1.5l2.6-2.5 4.6 3.4c.9.7 2.2.2 2.4-.9L21.9 4.6zM8.6 13.1l9.6-6-7.6 7.3-.4 3.1-1.6-4.4z"/></svg>
+      قناتي على تيليجرام
+    </a>
+  </div>
+</footer>
+
+<script>
+  // ---------- لون الموقع (Theme Switcher) ----------
+  const DEFAULT_ACCENT = '#7a1f2b'; // ماروني
+
+  function hexToHSL(hex){
+    hex = hex.replace('#','');
+    if(hex.length === 3){ hex = hex.split('').map(c => c+c).join(''); }
+    const r = parseInt(hex.substr(0,2),16) / 255;
+    const g = parseInt(hex.substr(2,2),16) / 255;
+    const b = parseInt(hex.substr(4,2),16) / 255;
+    const max = Math.max(r,g,b), min = Math.min(r,g,b);
+    let h, s, l = (max + min) / 2;
+    if(max === min){ h = s = 0; }
+    else{
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch(max){
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return { h: Math.round(h*360), s: Math.round(s*100), l: Math.round(l*100) };
+  }
+
+  function applyAccent(hex, btnEl){
+    const { h, s, l } = hexToHSL(hex);
+    const root = document.documentElement.style;
+    root.setProperty('--accent-h', h);
+    root.setProperty('--accent-s', s + '%');
+    // نحافظ على تباين جيد بعدم السماح للإضاءة أن تكون داكنة جداً أو فاتحة جداً
+    const lightness = Math.min(Math.max(l, 22), 45);
+    root.setProperty('--accent-l', lightness + '%');
+
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+    if(btnEl){ btnEl.classList.add('active'); }
+    document.getElementById('customAccent').value = hex;
+  }
+
+  function toggleThemePanel(){
+    document.getElementById('themePanel').classList.toggle('open');
+  }
+
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('themePanel');
+    const switcher = document.querySelector('.theme-switcher');
+    if(panel.classList.contains('open') && !switcher.contains(e.target)){
+      panel.classList.remove('open');
+    }
+  });
+
+  // الموقع يبدأ دائماً باللون الماروني عند أول فتح له
+  (function initTheme(){
+    const matchBtn = document.querySelector(`.theme-swatch[data-color="${DEFAULT_ACCENT}"]`);
+    applyAccent(DEFAULT_ACCENT, matchBtn);
+  })();
+
+  // ---------- view routing ----------
+  function go(view){
+    document.getElementById('view-home').classList.toggle('active', view === 'home');
+    document.getElementById('view-create').classList.toggle('active', view === 'create');
+    window.scrollTo({top:0, behavior:'instant'});
+    location.hash = view === 'create' ? '/create' : '/';
+  }
+  function routeFromHash(){
+    go(location.hash === '#/create' ? 'create' : 'home');
+  }
+  window.addEventListener('hashchange', routeFromHash);
+  routeFromHash();
+
+  // ---------- animated counter ----------
+  (function animateCounter(){
+    const el = document.getElementById('greetCounter');
+    const target = 1284; // illustrative placeholder count
+    let cur = 0;
+    const step = Math.max(1, Math.round(target / 60));
+    const t = setInterval(() => {
+      cur += step;
+      if(cur >= target){ cur = target; clearInterval(t); }
+      el.textContent = cur.toLocaleString('ar');
+    }, 20);
+  })();
+
+  // ---------- occasion picker ----------
+  document.querySelectorAll('.occasion-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.occasion-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      opt.querySelector('input').checked = true;
+    });
+  });
+
+  // ---------- album style picker ----------
+  document.querySelectorAll('.album-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.album-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      opt.querySelector('input').checked = true;
+    });
+  });
+
+  // ---------- music tabs ----------
+  function pickMusic(btn){
+    document.querySelectorAll('.music-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ---------- color sync ----------
+  function syncColor(val){
+    if(!/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(val)) return;
+    document.getElementById('themeColor').value = val;
+    document.getElementById('colorText').value = val;
+    document.getElementById('colorSwatch').style.background = val;
+    document.querySelectorAll('.preset').forEach(p => p.classList.remove('active'));
+  }
+  function pickPreset(val, btn){
+    syncColor(val);
+    btn.classList.add('active');
+  }
+
+  // ---------- image preview ----------
+  function previewImages(input){
+    const wrap = document.getElementById('thumbs');
+    wrap.innerHTML = '';
+    const files = Array.from(input.files || []).slice(0, 8);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        wrap.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- fake QR (simple generated pattern, no external service) ----------
+  function renderFakeQR(container, seedText){
+    container.innerHTML = '';
+    const size = 21;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+    svg.setAttribute('width', '160');
+    svg.setAttribute('height', '160');
+    let seed = 0;
+    for(let i=0;i<seedText.length;i++) seed = (seed * 31 + seedText.charCodeAt(i)) >>> 0;
+    function rand(){ seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+    for(let y=0;y<size;y++){
+      for(let x=0;x<size;x++){
+        const isFinder = (x<7&&y<7)||(x>size-8&&y<7)||(x<7&&y>size-8);
+        const on = isFinder ? (x%6!==0 && y%6!==0) : rand() > 0.55;
+        if(on){
+          const rect = document.createElementNS(svgNS,'rect');
+          rect.setAttribute('x', x); rect.setAttribute('y', y);
+          rect.setAttribute('width', 1); rect.setAttribute('height', 1);
+          rect.setAttribute('fill', '#0f172a');
+          svg.appendChild(rect);
+        }
+      }
+    }
+    container.appendChild(svg);
+  }
+
+  // ---------- submit ----------
+  function submitGreeting(e){
+    e.preventDefault();
+    const form = e.target;
+    const receiver = form.receiverName.value.trim();
+    const sender = form.senderName.value.trim();
+    if(!receiver || !sender || !form.message.value.trim()){
+      return false;
+    }
+    const slug = (receiver + '-' + sender).toLowerCase()
+      .replace(/[^a-z0-9\u0600-\u06FF]+/g,'-').replace(/(^-|-$)/g,'') || 'greeting';
+    const fakeId = Math.random().toString(36).slice(2,8);
+    const fakeUrl = location.origin + location.pathname + '#/g/' + slug + '-' + fakeId;
+
+    const panel = document.getElementById('resultPanel');
+    document.getElementById('resultLink').textContent = fakeUrl;
+    renderFakeQR(document.getElementById('qrBox'), fakeUrl);
+    panel.classList.add('show');
+    panel.scrollIntoView({behavior:'smooth', block:'start'});
+    return false;
+  }
+</script>
+</body>
+</html>
