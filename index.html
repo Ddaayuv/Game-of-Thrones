@@ -536,6 +536,27 @@
     .greeting-album.book .greeting-page + .greeting-page{ border-right:none; border-top:1px solid var(--slate-200); }
   }
 
+
+  /* ---------- shared uploaded-media album styles ---------- */
+  .greeting-album.slider,.greeting-album.book{position:relative;}
+  .greeting-media-card{position:relative;border-radius:1.25rem;overflow:hidden;border:1px solid var(--slate-200);background:#fff;box-shadow:0 12px 28px -18px rgba(15,23,42,.28);}
+  .greeting-media-card img{display:block;width:100%;height:260px;object-fit:cover;background:var(--slate-100);}
+  .greeting-slider-stage{position:relative;min-height:260px;}
+  .greeting-slider-stage .greeting-media-card{display:none;}
+  .greeting-slider-stage .greeting-media-card.active{display:block;animation:greetFade .35s ease;}
+  @keyframes greetFade{from{opacity:.15;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
+  .greeting-nav{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-top:.75rem;flex-wrap:wrap;}
+  .greeting-nav button{border:1px solid var(--slate-200);background:#fff;color:var(--slate-700);border-radius:.8rem;padding:.55rem .8rem;font-weight:700;}
+  .greeting-dots{display:flex;gap:.35rem;align-items:center;justify-content:center;}
+  .greeting-dot{width:.45rem;height:.45rem;border-radius:999px;border:0;background:var(--slate-300);padding:0;}
+  .greeting-dot.active{background:var(--purple-600);transform:scale(1.2);}
+  .greeting-book-image{width:100%;height:260px;object-fit:cover;display:block;background:var(--slate-100);}
+  .greeting-empty-media{padding:1.5rem;color:var(--slate-500);background:linear-gradient(135deg,rgba(248,250,252,.95),rgba(255,255,255,.9));}
+  .greeting-audio-actions{display:flex;justify-content:center;margin-top:.75rem;}
+  .greeting-audio-play{border:none;border-radius:.8rem;padding:.65rem 1rem;background:linear-gradient(to left,var(--violet-600),var(--purple-700));color:#fff;font-weight:700;}
+  .greeting-loading{max-width:54rem;margin:3rem auto;padding:2rem;text-align:center;border-radius:1.5rem;background:rgba(255,255,255,.88);border:1px solid var(--slate-200);box-shadow:0 20px 50px -25px rgba(15,23,42,.25);}
+  .submit-btn.is-loading{opacity:.75;pointer-events:none;}
+
   /* ---------- floating theme-color switcher ---------- */
   .theme-switcher{
     position:fixed;
@@ -1139,11 +1160,40 @@
     });
   }
 
-  function makeShareUrl(data){
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-    // يعمل سواء كان الملف مرفوعاً على استضافة أو مفتوحاً مباشرة كملف HTML
-    const base = window.location.href.split('#')[0];
-    return base + '#/g/' + encoded;
+  function shortBaseUrl(){
+    return window.location.origin;
+  }
+
+  async function uploadBinary(file, folder){
+    const safeName = (file.name || 'file').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-120);
+    const res = await fetch('/api/upload?folder=' + encodeURIComponent(folder), {
+      method:'POST',
+      headers:{
+        'Content-Type': file.type || 'application/octet-stream',
+        'X-File-Name': safeName
+      },
+      body:file
+    });
+    let payload = null;
+    try{ payload = await res.json(); }catch(_){ }
+    if(!res.ok || !payload?.url){
+      throw new Error(payload?.error || 'فشل رفع الملف');
+    }
+    return payload.url;
+  }
+
+  async function createRemoteGreeting(data){
+    const res = await fetch('/api/create', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    let payload = null;
+    try{ payload = await res.json(); }catch(_){ }
+    if(!res.ok || !payload?.id){
+      throw new Error(payload?.error || 'فشل إنشاء التهنئة');
+    }
+    return shortBaseUrl() + '/g/' + encodeURIComponent(payload.id);
   }
 
   async function copyResultLink(){
@@ -1152,9 +1202,6 @@
     if(!url) return;
     try{
       await navigator.clipboard.writeText(url);
-      const old = el.textContent;
-      el.textContent = '✓ تم نسخ الرابط';
-      setTimeout(() => el.textContent = old, 1200);
     }catch(err){
       const ta = document.createElement('textarea');
       ta.value = url;
@@ -1162,10 +1209,10 @@
       ta.select();
       document.execCommand('copy');
       ta.remove();
-      const old = el.textContent;
-      el.textContent = '✓ تم نسخ الرابط';
-      setTimeout(() => el.textContent = old, 1200);
     }
+    const old = el.textContent;
+    el.textContent = '✓ تم نسخ الرابط';
+    setTimeout(() => el.textContent = old, 1200);
   }
 
   // ---------- submit ----------
@@ -1174,97 +1221,130 @@
     const form = e.target;
     if(!form.reportValidity()) return false;
 
-    const receiver = form.receiverName.value.trim();
-    const sender = form.senderName.value.trim();
-    const message = form.message.value.trim();
-    const color = form.themeColor.value || '#8b5cf6';
-    const type = form.querySelector('input[name="type"]:checked')?.value || 'Birthday';
-    const albumStyle = form.querySelector('input[name="albumStyle"]:checked')?.value || 'slider';
+    const submitBtn = form.querySelector('.submit-btn');
+    if(submitBtn.classList.contains('is-loading')) return false;
+    submitBtn.classList.add('is-loading');
+    const oldBtnHtml = submitBtn.innerHTML;
+    submitBtn.textContent = 'جارٍ إنشاء التهنئة...';
 
-    let music = { type:'none', value:'' };
-    if(selectedMusic.type === 'url' && selectedMusic.value){
-      try{ new URL(selectedMusic.value); }
-      catch(_){ alert('رابط الموسيقى غير صحيح.'); return false; }
-      music = { type:'url', value:selectedMusic.value };
-    } else if(selectedMusic.type === 'file' && selectedMusic.value){
-      // نضمّن ملفاً صوتياً صغيراً داخل الرابط حتى يعمل على جهاز آخر أيضاً.
-      // الملفات الكبيرة جداً تجعل الرابط وQR ضخمين؛ عندها استخدم رابطاً خارجياً.
-      const audioFile = selectedMusic.value;
-      const MAX_EMBED_AUDIO = 1200 * 1024; // 1.2MB
-      if(audioFile.size > MAX_EMBED_AUDIO){
-        alert('ملف الأغنية كبير جداً للمشاركة داخل الرابط. استخدم خيار "رابط خارجي" للأغاني الكبيرة.');
-        return false;
+    try{
+      const receiver = form.receiverName.value.trim();
+      const sender = form.senderName.value.trim();
+      const message = form.message.value.trim();
+      const color = form.themeColor.value || '#8b5cf6';
+      const type = form.querySelector('input[name="type"]:checked')?.value || 'Birthday';
+      const albumStyle = form.querySelector('input[name="albumStyle"]:checked')?.value || 'slider';
+
+      const imagesInput = form.querySelector('input[name="images"]');
+      const imageFiles = Array.from(imagesInput?.files || []).slice(0,8).filter(f => f.type.startsWith('image/'));
+      const imageUrls = [];
+      for(let i=0;i<imageFiles.length;i++){
+        submitBtn.textContent = `رفع الصورة ${i+1} من ${imageFiles.length}...`;
+        const url = await uploadBinary(imageFiles[i], 'images');
+        imageUrls.push(url);
       }
-      const audioDataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(reader.error || new Error('Audio read failed'));
-        reader.readAsDataURL(audioFile);
-      });
-      music = { type:'data', value:String(audioDataUrl), name:audioFile.name };
+
+      let music = {type:'none', value:''};
+      if(selectedMusic.type === 'url' && selectedMusic.value){
+        try{ new URL(selectedMusic.value); }
+        catch(_){ throw new Error('رابط الموسيقى غير صحيح.'); }
+        music = {type:'url', value:selectedMusic.value};
+      }else if(selectedMusic.type === 'file' && selectedMusic.value){
+        submitBtn.textContent = 'رفع الموسيقى...';
+        const url = await uploadBinary(selectedMusic.value, 'audio');
+        music = {type:'url', value:url, name:selectedMusic.value.name};
+      }
+
+      const data = {
+        type, receiver, sender, message, color, albumStyle,
+        images:imageUrls,
+        music,
+        createdAt:new Date().toISOString()
+      };
+
+      submitBtn.textContent = 'حفظ وإنشاء الرابط القصير...';
+      const url = await createRemoteGreeting(data);
+
+      const panel = document.getElementById('resultPanel');
+      const linkEl = document.getElementById('resultLink');
+      linkEl.textContent = url;
+      linkEl.dataset.url = url;
+      linkEl.title = 'اضغط لنسخ الرابط';
+      linkEl.style.cursor = 'pointer';
+      linkEl.style.userSelect = 'text';
+      linkEl.style.webkitUserSelect = 'text';
+      linkEl.onclick = copyResultLink;
+      linkEl.ondblclick = function(ev){
+        ev.stopPropagation();
+        const range = document.createRange();
+        range.selectNodeContents(linkEl);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      };
+      linkEl.setAttribute('role','button');
+      linkEl.setAttribute('tabindex','0');
+      linkEl.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); copyResultLink(); } };
+
+      renderQR(document.getElementById('qrBox'), url);
+      panel.classList.add('show');
+      panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }catch(err){
+      console.error('Create greeting error:', err);
+      alert(err?.message || 'حدث خطأ أثناء إنشاء التهنئة.');
+    }finally{
+      submitBtn.classList.remove('is-loading');
+      submitBtn.innerHTML = oldBtnHtml;
     }
-
-    const data = { type, receiver, sender, message, color, albumStyle, music };
-    const url = makeShareUrl(data);
-
-    const panel = document.getElementById('resultPanel');
-    const linkEl = document.getElementById('resultLink');
-    linkEl.textContent = url;
-    linkEl.dataset.url = url;
-    linkEl.title = 'اضغط لنسخ الرابط';
-    linkEl.style.cursor = 'pointer';
-    linkEl.style.userSelect = 'text';
-    linkEl.style.webkitUserSelect = 'text';
-    linkEl.onclick = copyResultLink;
-    linkEl.ondblclick = function(ev){
-      ev.stopPropagation();
-      const range = document.createRange();
-      range.selectNodeContents(linkEl);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    };
-    linkEl.setAttribute('role','button');
-    linkEl.setAttribute('tabindex','0');
-    linkEl.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); copyResultLink(); } };
-
-    renderQR(document.getElementById('qrBox'), url);
-    panel.classList.add('show');
-    panel.scrollIntoView({behavior:'smooth', block:'start'});
     return false;
   }
 
-  // عند فتح رابط /#/g/... اعرض التهنئة بدلاً من الصفحة الرئيسية
-  function openGreetingFromHash(){
-    let encoded = '';
-
-    // الصيغة الأساسية: #/g/...
-    if(location.hash.startsWith('#/g/')){
-      encoded = location.hash.slice(4);
-    } else {
-      // دعم أيضاً الروابط التي تحتوي ?g=...
-      try{
-        const params = new URLSearchParams(location.search);
-        encoded = params.get('g') || '';
-      }catch(_){
-        encoded = '';
-      }
-    }
-
-    if(!encoded) return false;
-
+  function getLegacyHashData(){
+    if(!location.hash.startsWith('#/g/')) return null;
+    const encoded = location.hash.slice(4);
+    if(!encoded) return null;
     try{
       const data = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-      if(!data || typeof data !== 'object') throw new Error('Invalid data');
-      showGreeting(data);
-      return true;
-    }catch(err){
-      console.error('Greeting link error:', err);
-      return false;
+      return data && typeof data === 'object' ? data : null;
+    }catch(_){
+      return null;
     }
   }
 
+  function getGreetingIdFromPath(){
+    const m = window.location.pathname.match(/^\/g\/([A-Za-z0-9_-]{4,64})\/?$/);
+    return m ? m[1] : '';
+  }
+
+  async function loadRemoteGreeting(id){
+    const res = await fetch('/api/greeting?id=' + encodeURIComponent(id), {cache:'no-store'});
+    let payload = null;
+    try{ payload = await res.json(); }catch(_){ }
+    if(!res.ok || !payload?.data) throw new Error(payload?.error || 'لم يتم العثور على التهنئة');
+    return payload.data;
+  }
+
+  function showGreetingLoading(text){
+    document.getElementById('view-home').classList.remove('active');
+    document.getElementById('view-create').classList.remove('active');
+    let loading = document.getElementById('greetingLoading');
+    if(!loading){
+      loading = document.createElement('main');
+      loading.id = 'greetingLoading';
+      loading.className = 'greeting-loading';
+      document.body.insertBefore(loading, document.querySelector('.theme-switcher'));
+    }
+    loading.textContent = text;
+    loading.style.display = 'block';
+  }
+
+  function hideGreetingLoading(){
+    const loading = document.getElementById('greetingLoading');
+    if(loading) loading.style.display = 'none';
+  }
+
   function showGreeting(data){
+    hideGreetingLoading();
     document.getElementById('view-home').classList.remove('active');
     document.getElementById('view-create').classList.remove('active');
 
@@ -1285,6 +1365,7 @@
           <div id="gvAudioWrap" class="greeting-audio-wrap" style="display:none">
             <p class="greeting-audio-title">🎵 الموسيقى المضافة إلى التهنئة</p>
             <audio id="gvAudio" class="greeting-audio" controls preload="metadata"></audio>
+            <div class="greeting-audio-actions"><button type="button" class="greeting-audio-play" id="gvAudioPlay">تشغيل الموسيقى</button></div>
           </div>
           <div style="margin-top:1.75rem">
             <a href="#/create" class="btn btn-primary" onclick="go('create');return false;">إنشاء تهنئة خاصة بك</a>
@@ -1296,7 +1377,6 @@
 
     viewer.classList.add('active');
 
-    // تطبيق اللون الذي اختاره صاحب التهنئة على نفس التصميم بالكامل
     if(data.color){
       try{ syncColor(data.color); }catch(_){ }
     }
@@ -1324,61 +1404,128 @@
     const isBook = data.albumStyle === 'book';
     designEl.textContent = isBook ? '📖 التصميم المختار: كتاب متقلب' : '🖼️ التصميم المختار: عرض شرائح';
 
-    // تطبيق التصميم المختار على مساحة الألبوم بدل تجاهله
-    album.className = 'greeting-album ' + (isBook ? 'book' : 'slider');
+    const images = Array.isArray(data.images) ? data.images.filter(Boolean).slice(0,8) : [];
     album.innerHTML = '';
-    const pages = [
-      'ذكريات جميلة',
-      data.message ? 'رسالتك الخاصة' : 'لحظات لا تُنسى',
-      `إلى ${data.receiver || 'صاحب التهنئة'}`
-    ];
-    pages.forEach((text) => {
-      const page = document.createElement('div');
-      page.className = 'greeting-page';
-      page.textContent = text;
-      album.appendChild(page);
-    });
+    album.className = 'greeting-album ' + (isBook ? 'book' : 'slider');
+
+    if(images.length){
+      if(isBook){
+        const first = document.createElement('div');
+        first.className = 'greeting-media-card';
+        const img1 = document.createElement('img');
+        img1.className = 'greeting-book-image';
+        img1.src = images[0]; img1.alt = 'صورة من ألبوم التهنئة'; img1.loading = 'lazy';
+        first.appendChild(img1); album.appendChild(first);
+
+        const second = document.createElement('div');
+        second.className = 'greeting-media-card';
+        const img2 = document.createElement('img');
+        img2.className = 'greeting-book-image';
+        img2.src = images[1] || images[0]; img2.alt = 'صورة من ألبوم التهنئة'; img2.loading = 'lazy';
+        second.appendChild(img2); album.appendChild(second);
+
+        for(let i=2;i<images.length;i++){
+          const card = document.createElement('div');
+          card.className = 'greeting-media-card';
+          const img = document.createElement('img');
+          img.className = 'greeting-book-image';
+          img.src = images[i]; img.alt = 'صورة من ألبوم التهنئة'; img.loading = 'lazy';
+          card.appendChild(img); album.appendChild(card);
+        }
+      }else{
+        const stage = document.createElement('div');
+        stage.className = 'greeting-slider-stage';
+        const dots = document.createElement('div');
+        dots.className = 'greeting-dots';
+        let current = 0;
+        images.forEach((src, index) => {
+          const card = document.createElement('div');
+          card.className = 'greeting-media-card' + (index === 0 ? ' active' : '');
+          const img = document.createElement('img');
+          img.src = src; img.alt = 'صورة من ألبوم التهنئة'; img.loading = index === 0 ? 'eager' : 'lazy';
+          card.appendChild(img); stage.appendChild(card);
+          const dot = document.createElement('button');
+          dot.type = 'button'; dot.className = 'greeting-dot' + (index === 0 ? ' active' : '');
+          dot.setAttribute('aria-label', `الصورة ${index+1}`);
+          dot.onclick = () => setSlide(index);
+          dots.appendChild(dot);
+        });
+        const nav = document.createElement('div'); nav.className = 'greeting-nav';
+        const prev = document.createElement('button'); prev.type='button'; prev.textContent='→ الصورة السابقة';
+        const next = document.createElement('button'); next.type='button'; next.textContent='الصورة التالية ←';
+        function setSlide(index){
+          current = (index + images.length) % images.length;
+          Array.from(stage.children).forEach((el,i)=>el.classList.toggle('active',i===current));
+          Array.from(dots.children).forEach((el,i)=>el.classList.toggle('active',i===current));
+        }
+        prev.onclick=()=>setSlide(current-1); next.onclick=()=>setSlide(current+1);
+        nav.append(prev, next); album.append(stage, nav, dots);
+      }
+    }else{
+      const empty = document.createElement('div');
+      empty.className = 'greeting-empty-media';
+      empty.textContent = isBook ? '📖 تم اختيار تصميم الكتاب المتقلب' : '🖼️ تم اختيار تصميم عرض الشرائح';
+      album.appendChild(empty);
+    }
 
     const audio = document.getElementById('gvAudio');
     const audioWrap = document.getElementById('gvAudioWrap');
-    audio.pause();
-    audio.removeAttribute('src');
-    audio.load();
-    audioWrap.style.display = 'none';
+    const playBtn = document.getElementById('gvAudioPlay');
+    audio.pause(); audio.removeAttribute('src'); audio.load(); audioWrap.style.display = 'none';
+    playBtn.onclick = async () => {
+      try{ await audio.play(); }catch(_){ alert('اضغط تشغيل من مشغل الصوت للسماح بالتشغيل.'); }
+    };
 
-    // رابط خارجي: يعمل عند فتح الرابط من أي جهاز طالما الرابط متاح
-    if(data.music?.type === 'url' && data.music.value){
+    if(data.music?.value){
       audio.src = data.music.value;
       audioWrap.style.display = 'block';
-    }
-    // ملف مضمّن داخل الرابط: يعمل على أي جهاز لأن الصوت أصبح جزءاً من بيانات التهنئة
-    else if(data.music?.type === 'data' && data.music.value){
-      audio.src = data.music.value;
-      audioWrap.style.display = 'block';
-    }
-    // توافق مع الروابط القديمة التي كانت تعتمد على ملف محلي في نفس الجلسة
-    else if(data.music?.type === 'local' && localMusicObjectUrl){
-      audio.src = localMusicObjectUrl;
-      audioWrap.style.display = 'block';
+      audio.addEventListener('loadeddata',()=>{
+        audio.play().catch(()=>{});
+      },{once:true});
     }
 
     window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  async function routeToGreetingIfNeeded(){
+    const id = getGreetingIdFromPath();
+    if(id){
+      try{
+        showGreetingLoading('جاري تحميل التهنئة...');
+        const data = await loadRemoteGreeting(id);
+        showGreeting(data);
+      }catch(err){
+        showGreetingLoading(err?.message || 'تعذر تحميل التهنئة');
+      }
+      return true;
+    }
+
+    const legacy = getLegacyHashData();
+    if(legacy){
+      showGreeting(legacy);
+      return true;
+    }
+    return false;
   }
 
   const originalGo = go;
   go = function(view){
     const viewer = document.getElementById('greetingViewer');
     if(viewer) viewer.classList.remove('active');
+    const loading = document.getElementById('greetingLoading');
+    if(loading) loading.style.display = 'none';
     originalGo(view);
   };
 
   const originalRouteFromHash = routeFromHash;
   routeFromHash = function(){
-    if(openGreetingFromHash()) return;
+    if(location.pathname.startsWith('/g/')) return;
+    if(getLegacyHashData()) return;
     originalRouteFromHash();
   };
   window.addEventListener('hashchange', routeFromHash);
-  routeFromHash();
+  routeToGreetingIfNeeded();
+
 
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
