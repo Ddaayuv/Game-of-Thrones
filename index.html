@@ -253,6 +253,7 @@
     border-radius:1.5rem; border:1px solid rgba(226,232,240,.8);
     background:rgba(255,255,255,.7); backdrop-filter:blur(6px);
     padding:1.75rem;
+    overflow:hidden;
   }
   .form-section-header{ display:flex; align-items:flex-start; gap:.75rem; margin-bottom:1.25rem; }
   .form-section-icon{ color:var(--purple-600); margin-top:.15rem; }
@@ -1024,20 +1025,20 @@
           </div>
         </div>
         <div class="color-row">
-          <input type="color" id="themeColor" value="#8b5cf6" name="themeColor" oninput="syncColor(this.value)">
+          <input type="color" id="themeColor" value="#6d28d9" name="themeColor" oninput="syncColor(this.value)">
           <div class="color-value">
-            <input id="colorText" value="#8b5cf6" oninput="syncColor(this.value)">
-            <div class="color-swatch" id="colorSwatch" style="background:#8b5cf6"></div>
+            <input id="colorText" value="#6d28d9" oninput="syncColor(this.value)">
+            <div class="color-swatch" id="colorSwatch" style="background:#6d28d9"></div>
           </div>
         </div>
         <div class="preset-row" id="presetRow">
-          <button type="button" class="preset active" style="background:#8b5cf6" onclick="pickPreset('#8b5cf6', this)"></button>
-          <button type="button" class="preset" style="background:#0ea5e9" onclick="pickPreset('#0ea5e9', this)"></button>
-          <button type="button" class="preset" style="background:#f43f5e" onclick="pickPreset('#f43f5e', this)"></button>
-          <button type="button" class="preset" style="background:#16a34a" onclick="pickPreset('#16a34a', this)"></button>
-          <button type="button" class="preset" style="background:#f97316" onclick="pickPreset('#f97316', this)"></button>
-          <button type="button" class="preset" style="background:#ec4899" onclick="pickPreset('#ec4899', this)"></button>
-          <button type="button" class="preset" style="background:#eab308" onclick="pickPreset('#eab308', this)"></button>
+          <button type="button" class="preset active" style="background:#6d28d9" onclick="pickPreset('#6d28d9', this)" title="بنفسجي ملكي"></button>
+          <button type="button" class="preset" style="background:#7a1f2b" onclick="pickPreset('#7a1f2b', this)" title="ماروني"></button>
+          <button type="button" class="preset" style="background:#9f1239" onclick="pickPreset('#9f1239', this)" title="عنابي"></button>
+          <button type="button" class="preset" style="background:#065f46" onclick="pickPreset('#065f46', this)" title="زمردي"></button>
+          <button type="button" class="preset" style="background:#1e3a8a" onclick="pickPreset('#1e3a8a', this)" title="أزرق كحلي"></button>
+          <button type="button" class="preset" style="background:#92400e" onclick="pickPreset('#92400e', this)" title="ذهبي داكن"></button>
+          <button type="button" class="preset" style="background:#0f172a" onclick="pickPreset('#0f172a', this)" title="أسود كحلي"></button>
         </div>
       </div>
 
@@ -1133,12 +1134,12 @@
     <h4>لون الموقع</h4>
     <div class="theme-swatches" id="themeSwatches">
       <button type="button" class="theme-swatch active" style="background:#7a1f2b" data-color="#7a1f2b" title="ماروني" onclick="applyAccent('#7a1f2b', this)"></button>
-      <button type="button" class="theme-swatch" style="background:#7c3aed" data-color="#7c3aed" title="بنفسجي" onclick="applyAccent('#7c3aed', this)"></button>
-      <button type="button" class="theme-swatch" style="background:#0ea5e9" data-color="#0ea5e9" title="أزرق" onclick="applyAccent('#0ea5e9', this)"></button>
-      <button type="button" class="theme-swatch" style="background:#16a34a" data-color="#16a34a" title="أخضر" onclick="applyAccent('#16a34a', this)"></button>
-      <button type="button" class="theme-swatch" style="background:#f97316" data-color="#f97316" title="برتقالي" onclick="applyAccent('#f97316', this)"></button>
-      <button type="button" class="theme-swatch" style="background:#ec4899" data-color="#ec4899" title="وردي" onclick="applyAccent('#ec4899', this)"></button>
-      <button type="button" class="theme-swatch" style="background:#eab308" data-color="#eab308" title="ذهبي" onclick="applyAccent('#eab308', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#6d28d9" data-color="#6d28d9" title="بنفسجي ملكي" onclick="applyAccent('#6d28d9', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#1e3a8a" data-color="#1e3a8a" title="أزرق كحلي" onclick="applyAccent('#1e3a8a', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#065f46" data-color="#065f46" title="زمردي" onclick="applyAccent('#065f46', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#92400e" data-color="#92400e" title="ذهبي داكن" onclick="applyAccent('#92400e', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#9f1239" data-color="#9f1239" title="عنابي" onclick="applyAccent('#9f1239', this)"></button>
+      <button type="button" class="theme-swatch" style="background:#3f3f46" data-color="#3f3f46" title="رمادي غرافيت" onclick="applyAccent('#3f3f46', this)"></button>
       <button type="button" class="theme-swatch" style="background:#0f172a" data-color="#0f172a" title="أسود كحلي" onclick="applyAccent('#0f172a', this)"></button>
     </div>
     <div class="theme-custom">
@@ -1196,9 +1197,12 @@
     const { h, s, l } = hexToHSL(hex);
     const root = document.documentElement.style;
     root.setProperty('--accent-h', h);
-    root.setProperty('--accent-s', s + '%');
-    // نحافظ على تباين جيد بعدم السماح للإضاءة أن تكون داكنة جداً أو فاتحة جداً
-    const lightness = Math.min(Math.max(l, 22), 45);
+    // نمنع الإشباع المفرط (يعطي إحساس "لعبة أطفال") ونحافظ على عمق فخم في اللون
+    const saturation = Math.min(Math.max(s, 35), 72);
+    root.setProperty('--accent-s', saturation + '%');
+    // نحافظ على تباين جيد بعدم السماح للإضاءة أن تكون داكنة جداً أو فاتحة جداً؛
+    // سقف أخفض هنا (بدلاً من 45%) يعطي إحساساً أغمق وأكثر فخامة (VIP) بدل الألوان الفاتحة الطفولية
+    const lightness = Math.min(Math.max(l, 16), 36);
     root.setProperty('--accent-l', lightness + '%');
 
     document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
@@ -1822,7 +1826,11 @@
     viewer.classList.add('active');
 
     if(data.color){
-      try{ syncColor(data.color); }catch(_){ }
+      try{
+        syncColor(data.color);
+        const matchBtn = document.querySelector(`.theme-swatch[data-color="${data.color}"]`);
+        applyAccent(data.color, matchBtn);
+      }catch(_){ }
     }
 
     const shellEl = document.getElementById('gvShell');
