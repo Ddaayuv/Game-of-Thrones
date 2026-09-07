@@ -424,6 +424,7 @@
     min-height:calc(100vh - 2rem);
     padding-top:3rem;
     padding-bottom:4rem;
+    position:relative;
   }
   .greeting-card{
     max-width:54rem;
@@ -614,6 +615,134 @@
     padding:.15rem; background:transparent; cursor:pointer;
   }
   .theme-custom span{ font-size:.78rem; color:var(--slate-500); }
+
+  /* ================================================================
+     تحسينات صفحة استقبال التهنئة (اللمسات الحلوة الجديدة)
+     ================================================================ */
+
+  /* قماش الاحتفال (كونفيتي / قلوب / نجوم حسب المناسبة) يطفو فوق الصفحة بدون كسر التصميم */
+  .greeting-fx-canvas{
+    position:fixed;
+    inset:0;
+    z-index:5;
+    pointer-events:none;
+  }
+
+  /* دخول البطاقة بحركة واحدة منسّقة: ظهور + ارتفاع خفيف */
+  .greeting-card.gv-enter{
+    animation:gvCardIn .8s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes gvCardIn{
+    from{ opacity:0; transform:translateY(18px) scale(.985); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  /* شارة المناسبة العائمة أعلى البطاقة */
+  .greeting-occasion-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:4.25rem;
+    height:4.25rem;
+    border-radius:999px;
+    background:var(--accent-tint-bg);
+    border:1px solid var(--purple-100);
+    font-size:2rem;
+    line-height:1;
+    margin-bottom:.35rem;
+    animation:gvBadgeFloat 3.2s ease-in-out infinite;
+    box-shadow:0 10px 24px -10px var(--accent-shadow-35);
+  }
+  @keyframes gvBadgeFloat{
+    0%,100%{ transform:translateY(0) rotate(0deg); }
+    50%{ transform:translateY(-6px) rotate(-4deg); }
+  }
+
+  .greeting-title.gv-typed{ opacity:0; animation:gvFadeUp .6s ease .15s both; }
+  .greeting-sub.gv-typed{ opacity:0; animation:gvFadeUp .6s ease .3s both; }
+  .greeting-design-badge.gv-typed{ opacity:0; animation:gvFadeUp .6s ease .4s both; }
+  @keyframes gvFadeUp{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* مؤشر الكتابة المتحركة على الرسالة */
+  .greeting-message .gv-cursor{
+    display:inline-block;
+    width:2px;
+    height:1.05em;
+    margin-inline-start:2px;
+    background:var(--purple-600);
+    vertical-align:-.15em;
+    animation:gvBlink .9s steps(1) infinite;
+  }
+  @keyframes gvBlink{
+    0%,49%{ opacity:1; }
+    50%,100%{ opacity:0; }
+  }
+
+  /* الألبوم يظهر بعد الرسالة بلمسة خفيفة */
+  .greeting-album.gv-reveal{ opacity:0; animation:gvFadeUp .7s ease both; }
+
+  /* مشغل الصوت: مؤشر موجات صوتية بسيط + زر لطيف */
+  .greeting-audio-wrap.gv-reveal{ opacity:0; animation:gvFadeUp .7s ease both; }
+  .greeting-audio-title{
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .gv-eq{
+    display:inline-flex;
+    align-items:flex-end;
+    gap:2px;
+    height:.9rem;
+  }
+  .gv-eq span{
+    display:block;
+    width:3px;
+    border-radius:2px;
+    background:var(--purple-600);
+    animation:gvEq 1s ease-in-out infinite;
+    opacity:.55;
+  }
+  .gv-eq span:nth-child(1){ height:35%; animation-delay:0s; }
+  .gv-eq span:nth-child(2){ height:85%; animation-delay:.15s; }
+  .gv-eq span:nth-child(3){ height:55%; animation-delay:.3s; }
+  .gv-eq span:nth-child(4){ height:70%; animation-delay:.45s; }
+  .gv-eq.playing span{ opacity:1; }
+  .gv-eq:not(.playing) span{ animation-play-state:paused; height:35% !important; }
+  @keyframes gvEq{
+    0%,100%{ transform:scaleY(.4); }
+    50%{ transform:scaleY(1); }
+  }
+  .greeting-audio-play{
+    display:inline-flex; align-items:center; gap:.5rem;
+    transition:transform .15s ease, box-shadow .2s ease;
+  }
+  .greeting-audio-play:hover{ transform:scale(1.03); }
+  .greeting-audio-play:active{ transform:scale(.97); }
+
+  /* بطاقة "من" تنبض مرة واحدة بلطف عند الظهور */
+  .greeting-from.gv-typed{ opacity:0; animation:gvFadeUp .6s ease both; }
+
+  /* زر إنشاء تهنئة خاصة بك في نهاية العرض */
+  .greeting-cta-wrap.gv-typed{ opacity:0; animation:gvFadeUp .6s ease both; }
+
+  @media (prefers-reduced-motion: reduce){
+    .greeting-card.gv-enter,
+    .greeting-occasion-badge,
+    .greeting-title.gv-typed,
+    .greeting-sub.gv-typed,
+    .greeting-design-badge.gv-typed,
+    .greeting-album.gv-reveal,
+    .greeting-audio-wrap.gv-reveal,
+    .greeting-from.gv-typed,
+    .greeting-cta-wrap.gv-typed,
+    .gv-eq span{
+      animation:none !important;
+      opacity:1 !important;
+      transform:none !important;
+    }
+    .greeting-message .gv-cursor{ display:none; }
+  }
 </style>
 </head>
 <body>
@@ -1343,6 +1472,118 @@
     if(loading) loading.style.display = 'none';
   }
 
+  // ---------- لمسات تجربة الاستقبال (Confetti / إيموجي المناسبة / كتابة متحركة) ----------
+
+  const OCCASION_EMOJI = {
+    'Birthday':'🎂',
+    'Eid Al-Fitr':'🌙',
+    'Eid Al-Adha':'🐑',
+    "Valentine's Day":'❤️',
+    'General Greeting':'✨'
+  };
+
+  // ألوان/رموز جسيمات الاحتفال بحسب المناسبة، بحيث لا تكسر أي تصميم — مجرد قماش شفاف فوق الصفحة
+  const OCCASION_FX = {
+    'Birthday':      { shapes:['🎈','🎉','✨'], mode:'emoji' },
+    'Eid Al-Fitr':   { shapes:['⭐','🌙','✨'], mode:'emoji' },
+    'Eid Al-Adha':   { shapes:['⭐','✨'],      mode:'emoji' },
+    "Valentine's Day": { shapes:['❤️','💗','✨'], mode:'emoji' },
+    'General Greeting':{ shapes:['✨','🎊'],     mode:'emoji' }
+  };
+
+  let gvFxRunning = false;
+
+  function runGreetingFx(type){
+    // يحترم تفضيل تقليل الحركة في النظام
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let canvas = document.getElementById('greetingFxCanvas');
+    if(!canvas){
+      canvas = document.createElement('div');
+      canvas.id = 'greetingFxCanvas';
+      canvas.className = 'greeting-fx-canvas';
+      document.body.appendChild(canvas);
+    }
+    canvas.innerHTML = '';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+
+    const cfg = OCCASION_FX[type] || OCCASION_FX['General Greeting'];
+    const count = 26;
+    const vw = window.innerWidth;
+
+    for(let i=0;i<count;i++){
+      const piece = document.createElement('span');
+      const shape = cfg.shapes[Math.floor(Math.random()*cfg.shapes.length)];
+      piece.textContent = shape;
+      const startX = Math.random() * vw;
+      const size = 14 + Math.random() * 16;
+      const duration = 3.2 + Math.random() * 2.4;
+      const delay = Math.random() * 1.4;
+      const drift = (Math.random() * 120 - 60);
+      const rotate = (Math.random() * 360 - 180);
+
+      piece.style.cssText = `
+        position:absolute;
+        top:-40px;
+        left:${startX}px;
+        font-size:${size}px;
+        opacity:0;
+        will-change:transform,opacity;
+        animation:gvFxFall ${duration}s ease-in ${delay}s forwards;
+        --gv-drift:${drift}px;
+        --gv-rotate:${rotate}deg;
+      `;
+      canvas.appendChild(piece);
+    }
+
+    // إضافة الـ keyframes ديناميكياً مرة واحدة فقط
+    if(!document.getElementById('gvFxStyle')){
+      const style = document.createElement('style');
+      style.id = 'gvFxStyle';
+      style.textContent = `
+        @keyframes gvFxFall{
+          0%{ opacity:0; transform:translate(0,0) rotate(0deg); }
+          8%{ opacity:1; }
+          100%{ opacity:0; transform:translate(var(--gv-drift), 100vh) rotate(var(--gv-rotate)); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // إزالة القماش بعد انتهاء كل الجسيمات لتفريغ الذاكرة
+    clearTimeout(canvas._gvCleanup);
+    canvas._gvCleanup = setTimeout(() => { canvas.innerHTML = ''; }, 7000);
+  }
+
+  // تأثير كتابة متحرك حقيقي على الرسالة (كما وُعِد المستخدم عند إنشاء التهنئة)
+  function typewriteMessage(el, text, onDone){
+    el.textContent = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'gv-cursor';
+    el.appendChild(cursor);
+
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      el.textContent = text;
+      if(onDone) onDone();
+      return;
+    }
+
+    const chars = Array.from(text || '');
+    let i = 0;
+    const speed = chars.length > 220 ? 12 : 22; // أسرع للرسائل الطويلة حتى لا تُمل
+    (function tick(){
+      if(i < chars.length){
+        cursor.insertAdjacentText('beforebegin', chars[i]);
+        i++;
+        setTimeout(tick, speed);
+      }else{
+        cursor.remove();
+        if(onDone) onDone();
+      }
+    })();
+  }
+
   function showGreeting(data){
     hideGreetingLoading();
     document.getElementById('view-home').classList.remove('active');
@@ -1354,20 +1595,24 @@
       viewer.id = 'greetingViewer';
       viewer.className = 'view active';
       viewer.innerHTML = `<section class="section-shell greeting-viewer-shell">
-        <div class="greeting-card">
+        <div class="greeting-card" id="gvCard">
           <div class="pill">تهنئة خاصة</div>
-          <h1 id="gvTitle" class="greeting-title"></h1>
-          <p id="gvType" class="greeting-sub"></p>
-          <div id="gvDesign" class="greeting-design-badge"></div>
+          <div><span id="gvBadge" class="greeting-occasion-badge"></span></div>
+          <h1 id="gvTitle" class="greeting-title gv-typed"></h1>
+          <p id="gvType" class="greeting-sub gv-typed"></p>
+          <div id="gvDesign" class="greeting-design-badge gv-typed"></div>
           <p id="gvMessage" class="greeting-message"></p>
-          <p id="gvSender" class="greeting-from"></p>
-          <div id="gvAlbum" class="greeting-album"></div>
-          <div id="gvAudioWrap" class="greeting-audio-wrap" style="display:none">
-            <p class="greeting-audio-title">🎵 الموسيقى المضافة إلى التهنئة</p>
+          <p id="gvSender" class="greeting-from gv-typed"></p>
+          <div id="gvAlbum" class="greeting-album gv-reveal"></div>
+          <div id="gvAudioWrap" class="greeting-audio-wrap gv-reveal" style="display:none">
+            <p class="greeting-audio-title">
+              <span>🎵 الموسيقى المضافة إلى التهنئة</span>
+              <span class="gv-eq" id="gvEq"><span></span><span></span><span></span><span></span></span>
+            </p>
             <audio id="gvAudio" class="greeting-audio" controls preload="metadata"></audio>
-            <div class="greeting-audio-actions"><button type="button" class="greeting-audio-play" id="gvAudioPlay">تشغيل الموسيقى</button></div>
+            <div class="greeting-audio-actions"><button type="button" class="greeting-audio-play" id="gvAudioPlay">▶ تشغيل الموسيقى</button></div>
           </div>
-          <div style="margin-top:1.75rem">
+          <div class="greeting-cta-wrap gv-typed" style="margin-top:1.75rem">
             <a href="#/create" class="btn btn-primary" onclick="go('create');return false;">إنشاء تهنئة خاصة بك</a>
           </div>
         </div>
@@ -1381,15 +1626,23 @@
       try{ syncColor(data.color); }catch(_){ }
     }
 
+    const card = document.getElementById('gvCard');
+    const badge = document.getElementById('gvBadge');
     const title = document.getElementById('gvTitle');
     const typeEl = document.getElementById('gvType');
     const designEl = document.getElementById('gvDesign');
     const messageEl = document.getElementById('gvMessage');
     const senderEl = document.getElementById('gvSender');
     const album = document.getElementById('gvAlbum');
+    const audioWrap = document.getElementById('gvAudioWrap');
 
+    // إعادة تشغيل حركة الدخول في كل مرة تُفتح فيها تهنئة
+    card.classList.remove('gv-enter');
+    void card.offsetWidth;
+    card.classList.add('gv-enter');
+
+    badge.textContent = OCCASION_EMOJI[data.type] || '✨';
     title.textContent = `إلى ${data.receiver || ''}`;
-    messageEl.textContent = data.message || '';
     senderEl.textContent = data.sender ? `من ${data.sender}` : '';
 
     const occasionNames = {
@@ -1404,9 +1657,20 @@
     const isBook = data.albumStyle === 'book';
     designEl.textContent = isBook ? '📖 التصميم المختار: كتاب متقلب' : '🖼️ التصميم المختار: عرض شرائح';
 
+    // ابدأ تأثير كتابة الرسالة بعد ظهور العنوان بلحظة، ثم اكشف الألبوم والصوت تباعاً
+    setTimeout(() => {
+      typewriteMessage(messageEl, data.message || '', () => {
+        album.style.animationDelay = '0s';
+        album.classList.add('gv-reveal');
+        if(audioWrap.style.display !== 'none'){
+          audioWrap.style.animationDelay = '.12s';
+        }
+      });
+    }, 550);
+
     const images = Array.isArray(data.images) ? data.images.filter(Boolean).slice(0,8) : [];
     album.innerHTML = '';
-    album.className = 'greeting-album ' + (isBook ? 'book' : 'slider');
+    album.className = 'greeting-album gv-reveal ' + (isBook ? 'book' : 'slider');
 
     if(images.length){
       if(isBook){
@@ -1425,12 +1689,12 @@
         second.appendChild(img2); album.appendChild(second);
 
         for(let i=2;i<images.length;i++){
-          const card = document.createElement('div');
-          card.className = 'greeting-media-card';
+          const card2 = document.createElement('div');
+          card2.className = 'greeting-media-card';
           const img = document.createElement('img');
           img.className = 'greeting-book-image';
           img.src = images[i]; img.alt = 'صورة من ألبوم التهنئة'; img.loading = 'lazy';
-          card.appendChild(img); album.appendChild(card);
+          card2.appendChild(img); album.appendChild(card2);
         }
       }else{
         const stage = document.createElement('div');
@@ -1439,11 +1703,11 @@
         dots.className = 'greeting-dots';
         let current = 0;
         images.forEach((src, index) => {
-          const card = document.createElement('div');
-          card.className = 'greeting-media-card' + (index === 0 ? ' active' : '');
+          const mcard = document.createElement('div');
+          mcard.className = 'greeting-media-card' + (index === 0 ? ' active' : '');
           const img = document.createElement('img');
           img.src = src; img.alt = 'صورة من ألبوم التهنئة'; img.loading = index === 0 ? 'eager' : 'lazy';
-          card.appendChild(img); stage.appendChild(card);
+          mcard.appendChild(img); stage.appendChild(mcard);
           const dot = document.createElement('button');
           dot.type = 'button'; dot.className = 'greeting-dot' + (index === 0 ? ' active' : '');
           dot.setAttribute('aria-label', `الصورة ${index+1}`);
@@ -1460,6 +1724,12 @@
         }
         prev.onclick=()=>setSlide(current-1); next.onclick=()=>setSlide(current+1);
         nav.append(prev, next); album.append(stage, nav, dots);
+
+        // تنقل تلقائي هادئ بين الصور عندما يكون هناك أكثر من صورة
+        if(images.length > 1 && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
+          clearInterval(album._gvAuto);
+          album._gvAuto = setInterval(() => setSlide(current + 1), 4200);
+        }
       }
     }else{
       const empty = document.createElement('div');
@@ -1469,20 +1739,39 @@
     }
 
     const audio = document.getElementById('gvAudio');
-    const audioWrap = document.getElementById('gvAudioWrap');
     const playBtn = document.getElementById('gvAudioPlay');
+    const eq = document.getElementById('gvEq');
     audio.pause(); audio.removeAttribute('src'); audio.load(); audioWrap.style.display = 'none';
+    eq.classList.remove('playing');
+    playBtn.textContent = '▶ تشغيل الموسيقى';
+
+    function setPlayingUI(isPlaying){
+      eq.classList.toggle('playing', isPlaying);
+      playBtn.textContent = isPlaying ? '⏸ إيقاف الموسيقى' : '▶ تشغيل الموسيقى';
+    }
+    audio.onplay = () => setPlayingUI(true);
+    audio.onpause = () => setPlayingUI(false);
+    audio.onended = () => setPlayingUI(false);
+
     playBtn.onclick = async () => {
-      try{ await audio.play(); }catch(_){ alert('اضغط تشغيل من مشغل الصوت للسماح بالتشغيل.'); }
+      try{
+        if(audio.paused){ await audio.play(); }
+        else{ audio.pause(); }
+      }catch(_){
+        alert('اضغط تشغيل من مشغل الصوت للسماح بالتشغيل.');
+      }
     };
 
     if(data.music?.value){
       audio.src = data.music.value;
       audioWrap.style.display = 'block';
       audio.addEventListener('loadeddata',()=>{
-        audio.play().catch(()=>{});
+        audio.play().catch(()=>{ /* المتصفح يمنع التشغيل التلقائي؛ زر التشغيل متاح */ });
       },{once:true});
     }
+
+    // احتفال بصري لطيف بحسب نوع المناسبة — لا يمس هيكل التصميم
+    runGreetingFx(data.type);
 
     window.scrollTo({top:0,behavior:'smooth'});
   }
