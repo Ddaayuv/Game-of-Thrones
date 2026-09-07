@@ -370,6 +370,10 @@
   }
   @media(min-width:640px){ .submit-btn{ width:auto; } }
   .submit-btn:hover{ transform:scale(1.01); }
+  .submit-actions{ display:flex; flex-direction:column; gap:.65rem; width:100%; }
+  @media(min-width:640px){ .submit-actions{ flex-direction:row; width:auto; } }
+  .preview-btn{ width:100%; }
+  @media(min-width:640px){ .preview-btn{ width:auto; } }
 
   /* result / QR preview modal-ish panel */
   .result-panel{
@@ -726,6 +730,91 @@
   /* زر إنشاء تهنئة خاصة بك في نهاية العرض */
   .greeting-cta-wrap.gv-typed{ opacity:0; animation:gvFadeUp .6s ease both; }
 
+  /* ---------- شريط وضع المعاينة ---------- */
+  .gv-preview-banner{
+    position:sticky;
+    top:0;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:.75rem;
+    flex-wrap:wrap;
+    margin:0 auto 1.5rem;
+    max-width:54rem;
+    border-radius:1.25rem;
+    border:1px dashed var(--purple-300, var(--purple-200));
+    background:var(--accent-tint-bg);
+    color:var(--purple-700);
+    font-weight:700;
+    font-size:.9rem;
+    padding:.85rem 1.1rem;
+    animation:gvFadeUp .4s ease both;
+  }
+  .gv-preview-banner .gv-edit-btn{
+    display:inline-flex; align-items:center; gap:.4rem;
+    border:none; border-radius:.8rem; padding:.55rem .9rem;
+    background:#fff; color:var(--purple-700); font-weight:700;
+    box-shadow:0 6px 16px -8px rgba(15,23,42,.25);
+  }
+  .gv-edit-btn:hover{ background:var(--purple-50); }
+
+  /* ---------- قصاصات الكونفيتي الملونة (شرائط ورقية) ---------- */
+  .gv-confetti-piece{
+    position:absolute;
+    top:-24px;
+    border-radius:2px;
+    opacity:0;
+    will-change:transform,opacity;
+  }
+  @keyframes gvConfettiFall{
+    0%{ opacity:0; transform:translate(0,0) rotate(0deg); }
+    10%{ opacity:1; }
+    100%{ opacity:0; transform:translate(var(--gv-drift), 105vh) rotate(var(--gv-spin)); }
+  }
+
+  /* ---------- القلوب المتطايرة عند اللمس/النقر على البطاقة ---------- */
+  .gv-tap-heart{
+    position:fixed;
+    z-index:30;
+    pointer-events:none;
+    font-size:1.35rem;
+    line-height:1;
+    animation:gvHeartFloat 1.1s ease-out forwards;
+    will-change:transform,opacity;
+  }
+  @keyframes gvHeartFloat{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(.4); }
+    15%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+    100%{ opacity:0; transform:translate(calc(-50% + var(--gv-hx,0px)), calc(-50% - 70px)) scale(.9); }
+  }
+
+  /* ---------- نوتات موسيقية عائمة أثناء تشغيل الأغنية ---------- */
+  .greeting-audio-actions{ position:relative; }
+  .gv-note{
+    position:absolute;
+    bottom:70%;
+    left:50%;
+    font-size:1rem;
+    opacity:0;
+    pointer-events:none;
+    animation:gvNoteFloat 1.6s ease-out forwards;
+  }
+  @keyframes gvNoteFloat{
+    0%{ opacity:0; transform:translate(-50%,0) scale(.7); }
+    18%{ opacity:1; }
+    100%{ opacity:0; transform:translate(calc(-50% + var(--gv-nx,0px)),-46px) scale(1.05); }
+  }
+  .greeting-audio-play.is-playing{
+    box-shadow:0 0 0 0 var(--accent-shadow-45);
+    animation:gvPlayPulse 1.8s ease-out infinite;
+  }
+  @keyframes gvPlayPulse{
+    0%{ box-shadow:0 0 0 0 var(--accent-shadow-35); }
+    70%{ box-shadow:0 0 0 12px transparent; }
+    100%{ box-shadow:0 0 0 0 transparent; }
+  }
+
   @media (prefers-reduced-motion: reduce){
     .greeting-card.gv-enter,
     .greeting-occasion-badge,
@@ -736,12 +825,16 @@
     .greeting-audio-wrap.gv-reveal,
     .greeting-from.gv-typed,
     .greeting-cta-wrap.gv-typed,
-    .gv-eq span{
+    .gv-eq span,
+    .gv-preview-banner,
+    .greeting-audio-play.is-playing{
       animation:none !important;
       opacity:1 !important;
       transform:none !important;
+      box-shadow:none !important;
     }
     .greeting-message .gv-cursor{ display:none; }
+    .gv-confetti-piece,.gv-tap-heart,.gv-note{ display:none !important; }
   }
 </style>
 </head>
@@ -1011,12 +1104,18 @@
       <div class="submit-bar">
         <div class="info">
           <p>جاهز للإبداع؟</p>
-          <p>سيتم إنشاء رابط تهنئة عام ورمز QR فوراً</p>
+          <p>عايِن تصميم التهنئة أولاً، ثم انشرها متى ما أعجبتك</p>
         </div>
-        <button type="submit" class="submit-btn">
-          إنشاء التهنئة
-          <svg width="18" height="18" style="display:inline;vertical-align:middle;margin-inline-start:.4rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-        </button>
+        <div class="submit-actions">
+          <button type="button" class="btn btn-secondary preview-btn" onclick="previewGreeting()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            معاينة التصميم
+          </button>
+          <button type="submit" class="submit-btn">
+            إنشاء التهنئة
+            <svg width="18" height="18" style="display:inline;vertical-align:middle;margin-inline-start:.4rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+          </button>
+        </div>
       </div>
     </form>
 
@@ -1492,11 +1591,13 @@
   };
 
   let gvFxRunning = false;
+  const GV_CONFETTI_PALETTE = ['#fbbf24','#34d399','#60a5fa','#f472b6','#f97316','#ffffff'];
 
-  function runGreetingFx(type){
-    // يحترم تفضيل تقليل الحركة في النظام
-    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  function prefersReducedMotion(){
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
 
+  function ensureFxCanvas(){
     let canvas = document.getElementById('greetingFxCanvas');
     if(!canvas){
       canvas = document.createElement('div');
@@ -1504,56 +1605,153 @@
       canvas.className = 'greeting-fx-canvas';
       document.body.appendChild(canvas);
     }
-    canvas.innerHTML = '';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
+    return canvas;
+  }
+
+  if(!document.getElementById('gvFxStyle')){
+    const style = document.createElement('style');
+    style.id = 'gvFxStyle';
+    style.textContent = `
+      @keyframes gvFxFall{
+        0%{ opacity:0; transform:translate(0,0) rotate(0deg); }
+        8%{ opacity:1; }
+        100%{ opacity:0; transform:translate(var(--gv-drift), 100vh) rotate(var(--gv-rotate)); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // إيموجي المناسبة يتساقط برفق + قصاصات كونفيتي ملونة — احتفال واحد منسّق عند فتح التهنئة
+  function celebrateGreeting(type){
+    if(prefersReducedMotion()) return;
+    const canvas = ensureFxCanvas();
+    canvas.innerHTML = '';
 
     const cfg = OCCASION_FX[type] || OCCASION_FX['General Greeting'];
-    const count = 26;
     const vw = window.innerWidth;
 
-    for(let i=0;i<count;i++){
+    // 1) إيموجي المناسبة يتساقط برفق
+    const emojiCount = 18;
+    for(let i=0;i<emojiCount;i++){
       const piece = document.createElement('span');
       const shape = cfg.shapes[Math.floor(Math.random()*cfg.shapes.length)];
       piece.textContent = shape;
       const startX = Math.random() * vw;
       const size = 14 + Math.random() * 16;
       const duration = 3.2 + Math.random() * 2.4;
-      const delay = Math.random() * 1.4;
+      const delay = Math.random() * 1.2;
       const drift = (Math.random() * 120 - 60);
       const rotate = (Math.random() * 360 - 180);
-
       piece.style.cssText = `
-        position:absolute;
-        top:-40px;
-        left:${startX}px;
-        font-size:${size}px;
-        opacity:0;
+        position:absolute; top:-40px; left:${startX}px; font-size:${size}px; opacity:0;
         will-change:transform,opacity;
         animation:gvFxFall ${duration}s ease-in ${delay}s forwards;
-        --gv-drift:${drift}px;
-        --gv-rotate:${rotate}deg;
+        --gv-drift:${drift}px; --gv-rotate:${rotate}deg;
       `;
       canvas.appendChild(piece);
     }
 
-    // إضافة الـ keyframes ديناميكياً مرة واحدة فقط
-    if(!document.getElementById('gvFxStyle')){
-      const style = document.createElement('style');
-      style.id = 'gvFxStyle';
-      style.textContent = `
-        @keyframes gvFxFall{
-          0%{ opacity:0; transform:translate(0,0) rotate(0deg); }
-          8%{ opacity:1; }
-          100%{ opacity:0; transform:translate(var(--gv-drift), 100vh) rotate(var(--gv-rotate)); }
-        }
+    // 2) قصاصات الكونفيتي الملونة (شرائط ورقية صغيرة تتمايل وتدور أثناء سقوطها)
+    const confettiCount = 42;
+    for(let i=0;i<confettiCount;i++){
+      const strip = document.createElement('span');
+      strip.className = 'gv-confetti-piece';
+      const w = 6 + Math.random()*5;
+      const h = 10 + Math.random()*9;
+      const color = GV_CONFETTI_PALETTE[Math.floor(Math.random()*GV_CONFETTI_PALETTE.length)];
+      const startX = Math.random() * vw;
+      const duration = 2.6 + Math.random() * 2.2;
+      const delay = Math.random() * 0.8;
+      const drift = (Math.random() * 170 - 85);
+      const spin = (Math.random() * 720 - 360);
+      strip.style.cssText = `
+        left:${startX}px; width:${w}px; height:${h}px; background:${color};
+        animation:gvConfettiFall ${duration}s ease-in ${delay}s forwards;
+        --gv-drift:${drift}px; --gv-spin:${spin}deg;
       `;
-      document.head.appendChild(style);
+      canvas.appendChild(strip);
     }
 
     // إزالة القماش بعد انتهاء كل الجسيمات لتفريغ الذاكرة
     clearTimeout(canvas._gvCleanup);
     canvas._gvCleanup = setTimeout(() => { canvas.innerHTML = ''; }, 7000);
+  }
+
+  // ---------- لمسة القلوب المتطايرة عند لمس/النقر على بطاقة التهنئة ----------
+  const GV_TAP_HEARTS = ['❤️','💗','💕','💖'];
+  function spawnTapHeart(x, y){
+    const heart = document.createElement('span');
+    heart.className = 'gv-tap-heart';
+    heart.textContent = GV_TAP_HEARTS[Math.floor(Math.random()*GV_TAP_HEARTS.length)];
+    heart.style.left = x + 'px';
+    heart.style.top = y + 'px';
+    heart.style.setProperty('--gv-hx', (Math.random()*44 - 22) + 'px');
+    document.body.appendChild(heart);
+    setTimeout(() => heart.remove(), 1200);
+  }
+  function attachTapHearts(card){
+    if(!card || card._gvHeartsBound) return;
+    card._gvHeartsBound = true;
+    card.addEventListener('click', (e) => {
+      if(prefersReducedMotion()) return;
+      if(e.target.closest('button,a,audio,input,select,textarea')) return;
+      spawnTapHeart(e.clientX, e.clientY);
+    });
+  }
+
+  // ---------- نوتات موسيقية عائمة أثناء تشغيل الأغنية ----------
+  const GV_NOTES = ['🎵','🎶','♪'];
+  function spawnMusicNote(container){
+    if(!container) return;
+    const note = document.createElement('span');
+    note.className = 'gv-note';
+    note.textContent = GV_NOTES[Math.floor(Math.random()*GV_NOTES.length)];
+    note.style.setProperty('--gv-nx', (Math.random()*30 - 15) + 'px');
+    container.appendChild(note);
+    setTimeout(() => note.remove(), 1700);
+  }
+
+  // إيقاف كل مؤثرات صفحة الاستقبال (يُستدعى عند مغادرة العرض)
+  function stopGreetingEffects(){
+    const audio = document.getElementById('gvAudio');
+    if(audio){
+      try{ audio.pause(); }catch(_){ }
+      clearInterval(audio._gvNoteInterval);
+    }
+    const album = document.getElementById('gvAlbum');
+    if(album){ clearInterval(album._gvAuto); }
+    const canvas = document.getElementById('greetingFxCanvas');
+    if(canvas){ clearTimeout(canvas._gvCleanup); canvas.innerHTML = ''; }
+  }
+
+  // ---------- تجميع بيانات معاينة محلية من الفورم (بدون رفع أو نشر) ----------
+  function collectLocalPreviewData(form){
+    const receiver = (form.receiverName.value || '').trim() || 'صديقي العزيز';
+    const sender = (form.senderName.value || '').trim() || 'صديقك';
+    const message = (form.message.value || '').trim() || 'اكتب رسالتك هنا لتظهر في المعاينة...';
+    const color = form.themeColor.value || '#8b5cf6';
+    const type = form.querySelector('input[name="type"]:checked')?.value || 'Birthday';
+    const albumStyle = form.querySelector('input[name="albumStyle"]:checked')?.value || 'slider';
+    const images = Array.from(document.querySelectorAll('#thumbs img')).map(img => img.src).slice(0, 8);
+
+    let music = { type:'none', value:'' };
+    if(selectedMusic.type === 'url' && selectedMusic.value){
+      music = { type:'url', value:selectedMusic.value };
+    }else if(selectedMusic.type === 'file' && selectedMusic.value){
+      if(!localMusicObjectUrl){ localMusicObjectUrl = URL.createObjectURL(selectedMusic.value); }
+      music = { type:'url', value:localMusicObjectUrl };
+    }
+
+    return { type, receiver, sender, message, color, albumStyle, images, music };
+  }
+
+  function previewGreeting(){
+    const form = document.getElementById('greetForm');
+    if(!form) return;
+    const data = collectLocalPreviewData(form);
+    showGreeting(data, { preview:true });
   }
 
   // تأثير كتابة متحرك حقيقي على الرسالة (كما وُعِد المستخدم عند إنشاء التهنئة)
@@ -1584,7 +1782,8 @@
     })();
   }
 
-  function showGreeting(data){
+  function showGreeting(data, opts){
+    opts = opts || {};
     hideGreetingLoading();
     document.getElementById('view-home').classList.remove('active');
     document.getElementById('view-create').classList.remove('active');
@@ -1594,7 +1793,7 @@
       viewer = document.createElement('main');
       viewer.id = 'greetingViewer';
       viewer.className = 'view active';
-      viewer.innerHTML = `<section class="section-shell greeting-viewer-shell">
+      viewer.innerHTML = `<section class="section-shell greeting-viewer-shell" id="gvShell">
         <div class="greeting-card" id="gvCard">
           <div class="pill">تهنئة خاصة</div>
           <div><span id="gvBadge" class="greeting-occasion-badge"></span></div>
@@ -1626,6 +1825,7 @@
       try{ syncColor(data.color); }catch(_){ }
     }
 
+    const shellEl = document.getElementById('gvShell');
     const card = document.getElementById('gvCard');
     const badge = document.getElementById('gvBadge');
     const title = document.getElementById('gvTitle');
@@ -1635,6 +1835,28 @@
     const senderEl = document.getElementById('gvSender');
     const album = document.getElementById('gvAlbum');
     const audioWrap = document.getElementById('gvAudioWrap');
+    const ctaWrap = document.querySelector('.greeting-cta-wrap');
+
+    // شريط وضع المعاينة — يظهر فقط عند فتح "معاينة التصميم" من الفورم
+    let banner = document.getElementById('gvPreviewBanner');
+    if(opts.preview){
+      if(!banner){
+        banner = document.createElement('div');
+        banner.id = 'gvPreviewBanner';
+        banner.className = 'gv-preview-banner';
+        banner.innerHTML = `<span>🔍 وضع المعاينة — هكذا سيراها المستلم بالضبط</span>
+          <button type="button" class="gv-edit-btn" id="gvBackToEdit">← الرجوع للتعديل</button>`;
+        shellEl.insertBefore(banner, shellEl.firstChild);
+        document.getElementById('gvBackToEdit').addEventListener('click', () => go('create'));
+      }
+      banner.style.display = 'flex';
+      if(ctaWrap) ctaWrap.style.display = 'none';
+    }else if(banner){
+      banner.style.display = 'none';
+      if(ctaWrap) ctaWrap.style.display = '';
+    }
+
+    attachTapHearts(card);
 
     // إعادة تشغيل حركة الدخول في كل مرة تُفتح فيها تهنئة
     card.classList.remove('gv-enter');
@@ -1747,7 +1969,13 @@
 
     function setPlayingUI(isPlaying){
       eq.classList.toggle('playing', isPlaying);
+      playBtn.classList.toggle('is-playing', isPlaying);
       playBtn.textContent = isPlaying ? '⏸ إيقاف الموسيقى' : '▶ تشغيل الموسيقى';
+      clearInterval(audio._gvNoteInterval);
+      if(isPlaying && !prefersReducedMotion()){
+        const notesHost = document.querySelector('.greeting-audio-actions');
+        audio._gvNoteInterval = setInterval(() => spawnMusicNote(notesHost), 650);
+      }
     }
     audio.onplay = () => setPlayingUI(true);
     audio.onpause = () => setPlayingUI(false);
@@ -1770,8 +1998,8 @@
       },{once:true});
     }
 
-    // احتفال بصري لطيف بحسب نوع المناسبة — لا يمس هيكل التصميم
-    runGreetingFx(data.type);
+    // احتفال بصري لطيف بحسب نوع المناسبة (إيموجي + كونفيتي ملون) — لا يمس هيكل التصميم
+    celebrateGreeting(data.type);
 
     window.scrollTo({top:0,behavior:'smooth'});
   }
@@ -1799,6 +2027,7 @@
 
   const originalGo = go;
   go = function(view){
+    stopGreetingEffects();
     const viewer = document.getElementById('greetingViewer');
     if(viewer) viewer.classList.remove('active');
     const loading = document.getElementById('greetingLoading');
